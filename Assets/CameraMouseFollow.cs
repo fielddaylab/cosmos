@@ -10,20 +10,22 @@ public class CameraMouseFollow : MonoBehaviour
   public Vector3 lazy_origin_ray;
 
   new GameObject camera;
+
+  int zoom_cur;
+  int zoom_target;
+  float zoom_t;
+  GameObject[] zoom_object;
+  float[] zoom_scale;
+  Vector3[] zoom_offset;
+  float zoom_scale_cur;
+  Vector3 zoom_offset_cur;
+
+  //zoom 0 special
   Collider dome_collider;
-  GameObject universe;
   GameObject ground;
 
   int origin_ray_id;
   int camera_position_id;
-
-  float scale;
-  Vector3 offset;
-  float base_scale;
-  Vector3 base_offset;
-  float target_scale;
-  Vector3 target_offset;
-  float target_t;
 
   void Start()
   {
@@ -31,62 +33,59 @@ public class CameraMouseFollow : MonoBehaviour
     lazy_origin_ray = new Vector3(0,0,1);
 
     camera = GameObject.Find("Main Camera");
+
+    zoom_cur = 0;
+    zoom_target = 0;
+    zoom_t = 0;
+    zoom_object = new GameObject[3];
+    zoom_scale = new float[3];
+    zoom_offset = new Vector3[3];
+    zoom_object[0] = GameObject.Find("Zoom0");
+    zoom_object[1] = GameObject.Find("Zoom1");
+    zoom_object[2] = GameObject.Find("Zoom2");
+    zoom_scale[0] = 1;
+    zoom_scale[1] = 10;
+    zoom_scale[2] = 100;
+    zoom_offset[0] = new Vector3(0,1,0);
+    zoom_offset[1] = new Vector3(10,11,10);
+    zoom_offset[2] = new Vector3(100,101,100);
+
+    zoom_scale_cur = zoom_scale[zoom_cur];
+    zoom_offset_cur = zoom_offset[zoom_cur];
+
     GameObject dome = GameObject.Find("DomeGrid");
     dome_collider = dome.GetComponent<Collider>();
-    universe = GameObject.Find("Universe");
     ground = GameObject.Find("Ground");
 
     origin_ray_id = Shader.PropertyToID("lazy_origin_ray");
     camera_position_id = Shader.PropertyToID("cam_position");
-
-    offset = new Vector3(0,1,0);
-    scale = 1;
-    base_offset = new Vector3(0,1,0);
-    base_scale = 1;
-    target_offset = new Vector3(0,1,0);
-    target_scale = 1;
-    target_t = 0;
   }
 
   void Update()
   {
-    if(target_t == 0 && Input.GetMouseButtonDown(0))
+    if(zoom_t == 0 && Input.GetMouseButtonDown(0))
     {
-      target_scale = 0.1f;
-      target_offset.x = 10;
-      target_offset.y = 11;
-      target_offset.z = 10;
-      target_t = 0.01f;
+      zoom_t = 0.01f;
+      zoom_target = 1;
     }
 
-    if(target_t > 0)
+    if(zoom_t > 0)
     {
-      target_t += 0.01f;
+      zoom_t += 0.01f;
 
-      if(target_t > 1)
+      if(zoom_t > 1)
       {
-        target_t = 0;
-        offset.x = target_offset.x;
-        offset.y = target_offset.y;
-        offset.z = target_offset.z;
-        scale = target_scale;
-        base_offset.x = target_offset.x;
-        base_offset.y = target_offset.y;
-        base_offset.z = target_offset.z;
-        base_scale = target_scale;
+        zoom_t = 0;
+        zoom_cur = zoom_target;
+        if(zoom_cur == 1) ground.SetActive(false);
       }
-      else
-      {
-        ground.SetActive(false);
-        offset.x = Mathf.Lerp(base_offset.x,target_offset.x,target_t);
-        offset.y = Mathf.Lerp(base_offset.y,target_offset.y,target_t);
-        offset.z = Mathf.Lerp(base_offset.z,target_offset.z,target_t);
-        scale = Mathf.Lerp(base_scale,target_scale,target_t);
-      }
+
+      zoom_scale_cur = Mathf.Lerp(zoom_scale[zoom_cur],zoom_scale[zoom_target],zoom_t);
+      zoom_offset_cur = Vector3.Lerp(zoom_offset[zoom_cur],zoom_offset[zoom_target],zoom_t);
     }
 
-    universe.transform.localScale = new Vector3(scale,scale,scale);
-    transform.position = offset;
+    zoom_object[zoom_cur].transform.localScale = new Vector3(zoom_scale_cur,zoom_scale_cur,zoom_scale_cur);
+    transform.position = zoom_offset_cur;
 
     transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
 
