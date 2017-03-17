@@ -1,4 +1,4 @@
-﻿Shader "Unlit/GridShader"
+﻿Shader "Unlit/DomeGridShader"
 {
   Properties
   {
