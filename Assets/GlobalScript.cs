@@ -66,9 +66,10 @@ public class GlobalScript : MonoBehaviour
 
     //objects
     camera_house = GameObject.Find("CameraHouse");
-    camera       = GameObject.Find("Main Camera");
+	camera       = GameObject.Find("Main Camera");
     dome   = GameObject.Find("DomeGrid");
     plane  = GameObject.Find("PlaneGrid");
+		plane.transform.rotation = plane.transform.rotation;
     ground = GameObject.Find("Ground");
     ground.GetComponent<Renderer>().material.SetColor("_Color",Color.red);
     earth  = GameObject.Find("Earth");
