@@ -73,7 +73,7 @@ public class GlobalScript : MonoBehaviour
     ground = GameObject.Find("Ground");
     ground.GetComponent<Renderer>().material.SetColor("_Color",Color.red);
     earth  = GameObject.Find("Earth");
-    earth.GetComponent<Renderer>().material.SetColor("_Color",Color.yellow);
+    earth.GetComponent<Renderer>().material.SetColor("_Color",Color.red);
     sun    = GameObject.Find("Sun");
     sun.GetComponent<Renderer>().material.SetColor("_Color",Color.green);
     dome_labels = GameObject.Find("DomeLabels");
@@ -133,7 +133,6 @@ public class GlobalScript : MonoBehaviour
       zoom_t = 0.01f;
       zoom_target = (zoom_target+1)%n_zooms;
            if(zoom_target == 1) ground.SetActive(false);
-      else if(zoom_target == 0) ground.SetActive(true);
     }
 
     if(zoom_t > 0)
@@ -144,6 +143,7 @@ public class GlobalScript : MonoBehaviour
       {
         zoom_t = 0;
         zoom_cur = zoom_target;
+		if(zoom_target == 0) ground.SetActive(true);
       }
 
       zoom_scale_cur = Mathf.Lerp(zoom_scale[zoom_cur],zoom_scale[zoom_target],zoom_t);

@@ -86,13 +86,13 @@
           float frag_origin_pitch_band = cos(frag_origin_pitch*4*frag_origin_pitch_notches); //pitch oscillates n times between straight ahead and straight up
           frag_origin_pitch_band = (frag_origin_pitch_band+1)/2; //pitch oscillates between 0 and 1
           frag_origin_pitch_band = (frag_origin_pitch_band-frag_origin_pitch_display_threshhold)/(1-frag_origin_pitch_display_threshhold); //pitch is - below threshhold, 0 at threshhold, and 1 at 1
-          if(frag_origin_pitch_band < 0) frag_origin_pitch_band = 0;
+          frag_origin_pitch_band = max(0,frag_origin_pitch_band);
 
           float frag_origin_yaw = atan2(frag_origin_ray.z,frag_origin_ray.x); //yaw is angle of cardinal direction
           float frag_origin_yaw_band = cos(frag_origin_yaw*frag_origin_yaw_notches); //yaw oscillates n times around circle
           frag_origin_yaw_band = (frag_origin_yaw_band+1)/2; //yaw oscillates between 0 and 1
           frag_origin_yaw_band = (frag_origin_yaw_band-frag_origin_yaw_display_threshhold)/(1-frag_origin_yaw_display_threshhold); //yaw is - below threshhold, 0 at threshhold, and 1 at 1
-          if(frag_origin_yaw_band < 0) frag_origin_yaw_band = 0;
+          frag_origin_yaw_band = max(0,frag_origin_yaw_band);
 
           float3 lazy_pt = lazy_origin_ray*dome_s;
 
@@ -103,7 +103,7 @@
 
           shade = abs(snapped_lazy_origin_yaw-frag_origin_yaw)+abs(snapped_lazy_origin_pitch-frag_origin_pitch);
           shade = clamp(shade,0,1);
-          if(shade > 0.15) shade = 1;
+          shade = min(1,shade*7);
 
           x2 = frag_pt.x-lazy_pt.x;
           x2 *= x2;
