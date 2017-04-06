@@ -103,7 +103,10 @@
 
           shade = abs(snapped_lazy_origin_yaw-frag_origin_yaw)+abs(snapped_lazy_origin_pitch-frag_origin_pitch);
           shade = clamp(shade,0,1);
-          shade = min(1,shade*7);
+          shade = min(1,shade*5.5);
+          shade *= shade;
+          shade *= shade;
+          shade *= shade;
 
           x2 = frag_pt.x-lazy_pt.x;
           x2 *= x2;
@@ -115,7 +118,6 @@
 
           band = clamp(frag_origin_pitch_band+frag_origin_yaw_band,0,1);
           band *= (window_r-frag_lazy_dist)/window_r;
-          //shade *= (1-dist_from_proj)/1;
 
           color.rgba = float4(shade,1,1,band);
 

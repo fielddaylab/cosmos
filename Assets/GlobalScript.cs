@@ -5,7 +5,13 @@ using UnityEngine;
 public class GlobalScript : MonoBehaviour
 {
   Vector3 look_ahead;
+  Vector3 origin_ray;
   Vector3 lazy_origin_ray;
+  float lazy_origin_pitch;
+  float lazy_origin_yaw;
+  Vector3 snapped_lazy_origin_ray;
+  float snapped_lazy_origin_pitch;
+  float snapped_lazy_origin_yaw;
   int origin_ray_id;
   int camera_position_id;
 
@@ -43,6 +49,8 @@ public class GlobalScript : MonoBehaviour
   TextMesh[] labelsTexts;
   GameObject pointLabel;
   TextMesh pointLabelText;
+  GameObject snapPointLabel;
+  TextMesh snapPointLabelText;
   GameObject primaryLabel;
   TextMesh primaryLabelText;
 
@@ -59,17 +67,24 @@ public class GlobalScript : MonoBehaviour
   void Start()
   {
     look_ahead  = new Vector3(0,0,1);
-    lazy_origin_ray = new Vector3(0,0,1);
+
+    origin_ray = look_ahead;
+    lazy_origin_ray = look_ahead;
+    lazy_origin_pitch = 0;
+    lazy_origin_yaw = 0;
+    snapped_lazy_origin_ray = look_ahead;
+    snapped_lazy_origin_pitch = 0;
+    snapped_lazy_origin_yaw = 0;
 
     origin_ray_id = Shader.PropertyToID("lazy_origin_ray");
     camera_position_id = Shader.PropertyToID("cam_position");
 
     //objects
     camera_house = GameObject.Find("CameraHouse");
-	camera       = GameObject.Find("Main Camera");
+    camera       = GameObject.Find("Main Camera");
     dome   = GameObject.Find("DomeGrid");
     plane  = GameObject.Find("PlaneGrid");
-		plane.transform.rotation = plane.transform.rotation;
+    plane.transform.rotation = plane.transform.rotation;
     ground = GameObject.Find("Ground");
     ground.GetComponent<Renderer>().material.SetColor("_Color",Color.red);
     earth  = GameObject.Find("Earth");
@@ -121,6 +136,10 @@ public class GlobalScript : MonoBehaviour
     pointLabel.transform.parent = dome_labels.transform;
     pointLabelText = pointLabel.GetComponent<TextMesh>();
     pointLabelText.text = "x";
+    snapPointLabel = (GameObject)Instantiate(label_prefab);
+    snapPointLabel.transform.parent = dome_labels.transform;
+    snapPointLabelText = snapPointLabel.GetComponent<TextMesh>();
+    snapPointLabelText.text = "o";
     primaryLabel = (GameObject)Instantiate(label_prefab);
     primaryLabel.transform.parent = dome_labels.transform;
     primaryLabelText = primaryLabel.GetComponent<TextMesh>();
@@ -143,7 +162,7 @@ public class GlobalScript : MonoBehaviour
       {
         zoom_t = 0;
         zoom_cur = zoom_target;
-		if(zoom_target == 0) ground.SetActive(true);
+        if(zoom_target == 0) ground.SetActive(true);
       }
 
       zoom_scale_cur = Mathf.Lerp(zoom_scale[zoom_cur],zoom_scale[zoom_target],zoom_t);
@@ -160,30 +179,40 @@ public class GlobalScript : MonoBehaviour
     RaycastHit hit;
     if(dome_collider.Raycast(ray, out hit, 100.0F))
     {
-      lazy_origin_ray = Vector3.Normalize(Vector3.Lerp(lazy_origin_ray, Vector3.Normalize(ray.GetPoint(hit.distance)), 0.01f));
-      dome_grid_material.SetVector(camera_position_id,camera.transform.position);
-      dome_grid_material.SetVector(origin_ray_id,lazy_origin_ray);
+      origin_ray = Vector3.Normalize(ray.GetPoint(hit.distance));
     }
+
+    lazy_origin_ray = Vector3.Normalize(Vector3.Lerp(lazy_origin_ray, origin_ray, 0.01f));
+    dome_grid_material.SetVector(camera_position_id,camera.transform.position);
+    dome_grid_material.SetVector(origin_ray_id,lazy_origin_ray);
+
+    Vector3 lazy_origin_ray_sqr = lazy_origin_ray;
+    lazy_origin_ray_sqr.x *= lazy_origin_ray_sqr.x;
+    lazy_origin_ray_sqr.y *= lazy_origin_ray_sqr.y;
+    lazy_origin_ray_sqr.z *= lazy_origin_ray_sqr.z;
+    float lazy_plane_origin_dist = Mathf.Sqrt(lazy_origin_ray_sqr.x+lazy_origin_ray_sqr.z);
+
+    lazy_origin_pitch = Mathf.Atan2(lazy_origin_ray.y,lazy_plane_origin_dist);
+    lazy_origin_yaw   = Mathf.Atan2(lazy_origin_ray.z,lazy_origin_ray.x);
+    snapped_lazy_origin_pitch = ((Mathf.Floor((lazy_origin_pitch/3.1415f*180f)/10f)*10f)+5f)/180f*3.1415f;
+    snapped_lazy_origin_yaw   = ((Mathf.Floor((lazy_origin_yaw  /3.1415f*180f)/10f)*10f)+5f)/180f*3.1415f;
+
+    snapped_lazy_origin_ray = look_ahead;
+    snapped_lazy_origin_ray = Quaternion.Euler(-Mathf.Rad2Deg*snapped_lazy_origin_pitch, -Mathf.Rad2Deg*snapped_lazy_origin_yaw+90, 0) * snapped_lazy_origin_ray;
 
     //labels
     float dome_s = 5;
-    Vector3 gaze_position = lazy_origin_ray*dome_s;
+    Vector3         lazy_gaze_position =         lazy_origin_ray*dome_s;
+    Vector3 snapped_lazy_gaze_position = snapped_lazy_origin_ray*dome_s;
 
-    float x2 = gaze_position.x; x2 *= x2;
-    float y2 = gaze_position.y; y2 *= y2;
-    float z2 = gaze_position.z; z2 *= z2;
-    float plane_dist_from_orig = Mathf.Sqrt(x2+z2);
-    //float dist_from_orig = Mathf.Sqrt(x2+y2+z2);
-    float pitch = Mathf.Atan2(gaze_position.y,plane_dist_from_orig)/Mathf.PI*180; //pitch is angle of elevation
-    float yaw   = Mathf.Atan2(gaze_position.z,gaze_position.x)     /Mathf.PI*180; //yaw is angle of cardinal direction
+        pointLabel.transform.position =         lazy_gaze_position;
+    snapPointLabel.transform.position = snapped_lazy_gaze_position;
+        pointLabel.transform.rotation = Quaternion.Euler(-        lazy_origin_pitch*Mathf.Rad2Deg,90f-        lazy_origin_yaw*Mathf.Rad2Deg,0);
+    snapPointLabel.transform.rotation = Quaternion.Euler(-snapped_lazy_origin_pitch*Mathf.Rad2Deg,90f-snapped_lazy_origin_yaw*Mathf.Rad2Deg,0);
 
-    pointLabel.transform.position = gaze_position;
-    pointLabel.transform.rotation = Quaternion.Euler(-pitch,90f-yaw,0);
     primaryLabel.transform.position = pointLabel.transform.position+new Vector3(0f,0.5f,0f);
     primaryLabel.transform.rotation = pointLabel.transform.rotation;
-    primaryLabelText.text = string.Format("{0}°,{1}°", pitch.ToString("F1"), yaw.ToString("F1"));
+    primaryLabelText.text = string.Format("{0}°,{1}°", (lazy_origin_pitch*Mathf.Rad2Deg).ToString("F1"), (lazy_origin_yaw*Mathf.Rad2Deg).ToString("F1"));
   }
-
-
 
 }
