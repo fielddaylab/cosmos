@@ -19,6 +19,9 @@
 
         float3 cam_position;
         float3 lazy_origin_ray;
+        float snapped_lazy_origin_pitch;
+        float snapped_lazy_origin_yaw;
+        float grid_resolution;
 
         struct v2f
         {
@@ -40,10 +43,9 @@
         {
           float frag_origin_pitch_display_threshhold = 0.99;
           float frag_origin_yaw_display_threshhold = 0.999;
-          float frag_origin_pitch_notches = 90/10;
-          float frag_origin_yaw_notches = 360/10;
+          float frag_origin_pitch_notches = 90/grid_resolution;
+          float frag_origin_yaw_notches = 360/grid_resolution;
           float window_r = 2;
-          float dome_s = 5;
 
           fixed4 color = 0;
           float band = 0;
@@ -94,13 +96,6 @@
           frag_origin_yaw_band = (frag_origin_yaw_band-frag_origin_yaw_display_threshhold)/(1-frag_origin_yaw_display_threshhold); //yaw is - below threshhold, 0 at threshhold, and 1 at 1
           frag_origin_yaw_band = max(0,frag_origin_yaw_band);
 
-          float3 lazy_pt = lazy_origin_ray*dome_s;
-
-          float lazy_origin_pitch = atan2(lazy_origin_ray.y,lazy_plane_origin_dist);
-          float lazy_origin_yaw   = atan2(lazy_origin_ray.z,lazy_origin_ray.x);
-          float snapped_lazy_origin_pitch = ((floor((lazy_origin_pitch/3.1415*180)/10)*10)+5)/180*3.1415;
-          float snapped_lazy_origin_yaw   = ((floor((lazy_origin_yaw  /3.1415*180)/10)*10)+5)/180*3.1415;
-
           shade = abs(snapped_lazy_origin_yaw-frag_origin_yaw)+abs(snapped_lazy_origin_pitch-frag_origin_pitch);
           shade = clamp(shade,0,1);
           shade = min(1,shade*5.5);
@@ -108,16 +103,17 @@
           shade *= shade;
           shade *= shade;
 
-          x2 = frag_pt.x-lazy_pt.x;
+          frag_pt = normalize(frag_pt);
+          x2 = frag_pt.x-lazy_origin_ray.x;
           x2 *= x2;
-          y2 = frag_pt.y-lazy_pt.y;
+          y2 = frag_pt.y-lazy_origin_ray.y;
           y2 *= y2;
-          z2 = frag_pt.z-lazy_pt.z;
+          z2 = frag_pt.z-lazy_origin_ray.z;
           z2 *= z2;
           float frag_lazy_dist = sqrt(x2+y2+z2);
 
           band = clamp(frag_origin_pitch_band+frag_origin_yaw_band,0,1);
-          band *= (window_r-frag_lazy_dist)/window_r;
+          band *= (window_r-frag_lazy_dist*5.)/window_r;
 
           color.rgba = float4(shade,1,1,band);
 
