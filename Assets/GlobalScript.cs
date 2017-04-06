@@ -31,7 +31,6 @@ public class GlobalScript : MonoBehaviour
   GameObject ground;
   GameObject earth;
   GameObject sun;
-  GameObject dome_labels;
 
   //zoom
   int n_zooms;
@@ -41,8 +40,10 @@ public class GlobalScript : MonoBehaviour
   GameObject[] zoom_group;
   float[] zoom_scale;
   Vector3[] zoom_offset;
+  float[] zoom_grid_resolution;
   float zoom_scale_cur;
   Vector3 zoom_offset_cur;
+  float zoom_grid_resolution_cur;
 
   //zoom 0 special
   Collider dome_collider;
@@ -94,7 +95,6 @@ public class GlobalScript : MonoBehaviour
     earth.GetComponent<Renderer>().material.SetColor("_Color",Color.red);
     sun    = GameObject.Find("Sun");
     sun.GetComponent<Renderer>().material.SetColor("_Color",Color.green);
-    dome_labels = GameObject.Find("DomeLabels");
 
     //zoom
     n_zooms = 3;
@@ -104,6 +104,7 @@ public class GlobalScript : MonoBehaviour
     zoom_group = new GameObject[3];
     zoom_scale = new float[3];
     zoom_offset = new Vector3[3];
+    zoom_grid_resolution = new float[3];
     zoom_scale[0] = 1;
     zoom_scale[1] = 10;
     zoom_scale[2] = 100;
@@ -113,9 +114,13 @@ public class GlobalScript : MonoBehaviour
     zoom_offset[0] = zoom_group[0].transform.position;
     zoom_offset[1] = zoom_group[1].transform.position;
     zoom_offset[2] = zoom_group[2].transform.position;
+    zoom_grid_resolution[0] = 10;
+    zoom_grid_resolution[1] = 5;
+    zoom_grid_resolution[2] = 1;
 
     zoom_scale_cur = zoom_scale[zoom_cur];
     zoom_offset_cur = zoom_offset[zoom_cur];
+    zoom_grid_resolution_cur = zoom_grid_resolution[zoom_cur];
 
     zoom_groups();
 
@@ -123,15 +128,12 @@ public class GlobalScript : MonoBehaviour
     dome_collider = dome.GetComponent<Collider>();
 
     pointLabel = (GameObject)Instantiate(label_prefab);
-    pointLabel.transform.parent = dome_labels.transform;
     pointLabelText = pointLabel.GetComponent<TextMesh>();
     pointLabelText.text = "x";
     snapPointLabel = (GameObject)Instantiate(label_prefab);
-    snapPointLabel.transform.parent = dome_labels.transform;
     snapPointLabelText = snapPointLabel.GetComponent<TextMesh>();
     snapPointLabelText.text = "o";
     primaryLabel = (GameObject)Instantiate(label_prefab);
-    primaryLabel.transform.parent = dome_labels.transform;
     primaryLabelText = primaryLabel.GetComponent<TextMesh>();
   }
 
@@ -167,6 +169,7 @@ public class GlobalScript : MonoBehaviour
 
       zoom_scale_cur = Mathf.Lerp(zoom_scale[zoom_cur],zoom_scale[zoom_target],zoom_t);
       zoom_offset_cur = Vector3.Lerp(zoom_offset[zoom_cur],zoom_offset[zoom_target],zoom_t);
+      zoom_grid_resolution_cur = Mathf.Lerp(zoom_grid_resolution[zoom_cur],zoom_grid_resolution[zoom_target],zoom_t);
     }
 
     zoom_groups();
@@ -190,7 +193,7 @@ public class GlobalScript : MonoBehaviour
     lazy_origin_ray_sqr.z *= lazy_origin_ray_sqr.z;
     float lazy_plane_origin_dist = Mathf.Sqrt(lazy_origin_ray_sqr.x+lazy_origin_ray_sqr.z);
 
-    float grid_resolution = 10;
+    float grid_resolution = zoom_grid_resolution_cur;
     lazy_origin_pitch = Mathf.Atan2(lazy_origin_ray.y,lazy_plane_origin_dist);
     lazy_origin_yaw   = Mathf.Atan2(lazy_origin_ray.z,lazy_origin_ray.x);
     snapped_lazy_origin_pitch = ((Mathf.Floor((lazy_origin_pitch*Mathf.Rad2Deg)/grid_resolution)*grid_resolution)+grid_resolution/2)*Mathf.Deg2Rad;
@@ -200,8 +203,19 @@ public class GlobalScript : MonoBehaviour
     snapped_lazy_origin_ray = Quaternion.Euler(-Mathf.Rad2Deg*snapped_lazy_origin_pitch, -Mathf.Rad2Deg*snapped_lazy_origin_yaw+90, 0) * snapped_lazy_origin_ray;
 
     //labels
-    Vector3         lazy_gaze_position =         lazy_origin_ray*dome_s;
-    Vector3 snapped_lazy_gaze_position = snapped_lazy_origin_ray*dome_s;
+    Vector3         lazy_gaze_position;
+    Vector3 snapped_lazy_gaze_position;
+
+    if(zoom_cur == 0 && zoom_t < 0.5)
+    {
+              lazy_gaze_position =         lazy_origin_ray*dome_s;
+      snapped_lazy_gaze_position = snapped_lazy_origin_ray*dome_s;
+    }
+    else if((zoom_cur == 0 && zoom_t > 0.5) || zoom_cur > 0)
+    {
+              lazy_gaze_position =         lazy_origin_ray*plane.transform.position.magnitude;
+      snapped_lazy_gaze_position = snapped_lazy_origin_ray*plane.transform.position.magnitude;
+    }
 
         pointLabel.transform.position =         lazy_gaze_position;
     snapPointLabel.transform.position = snapped_lazy_gaze_position;

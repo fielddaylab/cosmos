@@ -98,7 +98,9 @@
 
           shade = abs(snapped_lazy_origin_yaw-frag_origin_yaw)+abs(snapped_lazy_origin_pitch-frag_origin_pitch);
           shade = clamp(shade,0,1);
-          shade = min(1,shade*5.5);
+          //10,5,5.5,11,grid_resolution //from_min,from_max,to_min,to_max,val
+          float v = ((grid_resolution-10)/(5-10))*(11-5.5)+5.5;
+          shade = min(1,shade*v);
           shade *= shade;
           shade *= shade;
           shade *= shade;
@@ -113,9 +115,12 @@
           float frag_lazy_dist = sqrt(x2+y2+z2);
 
           band = clamp(frag_origin_pitch_band+frag_origin_yaw_band,0,1);
-          band *= (window_r-frag_lazy_dist*5.)/window_r;
+          //10,5,5,10,grid_resolution //from_min,from_max,to_min,to_max,val
+          v = ((grid_resolution-10)/(5-10))*(10-5)+5;
+          band *= (window_r-frag_lazy_dist*v)/window_r;
 
           color.rgba = float4(shade,1,1,band);
+          //color.rgba = float4(shade,1,band,1);
 
           return color;
         }
