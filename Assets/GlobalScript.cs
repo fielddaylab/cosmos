@@ -32,6 +32,8 @@ public class GlobalScript : MonoBehaviour
   GameObject earth;
   GameObject sun;
 
+  GameObject pointer;
+
   //zoom
   int n_zooms;
   int zoom_cur;
@@ -44,6 +46,8 @@ public class GlobalScript : MonoBehaviour
   float zoom_scale_cur;
   Vector3 zoom_offset_cur;
   float zoom_grid_resolution_cur;
+
+  Collider plane_collider;
 
   //zoom 0 special
   Collider dome_collider;
@@ -96,6 +100,8 @@ public class GlobalScript : MonoBehaviour
     sun    = GameObject.Find("Sun");
     sun.GetComponent<Renderer>().material.SetColor("_Color",Color.green);
 
+    pointer = GameObject.Find("Pointer");
+
     //zoom
     n_zooms = 3;
     zoom_cur = 0;
@@ -124,8 +130,10 @@ public class GlobalScript : MonoBehaviour
 
     zoom_groups();
 
+    plane_collider = dome.GetComponent<Collider>();
+
     //zoom 0 special
-    dome_collider = dome.GetComponent<Collider>();
+    dome_collider = plane.GetComponent<Collider>();
 
     pointLabel = (GameObject)Instantiate(label_prefab);
     pointLabelText = pointLabel.GetComponent<TextMesh>();
@@ -178,12 +186,25 @@ public class GlobalScript : MonoBehaviour
     camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
 
     Vector3 cast_vision = camera.transform.position + (camera.transform.rotation * look_ahead * (dome_s+1));
+    pointer.transform.position = cast_vision;
     Ray ray = new Ray(cast_vision, -Vector3.Normalize(cast_vision));
     RaycastHit hit;
-    if(dome_collider.Raycast(ray, out hit, 100.0F))
+    if(zoom_cur == 0 && zoom_t < 0.5)
     {
-      origin_ray = Vector3.Normalize(ray.GetPoint(hit.distance));
+      if(dome_collider.Raycast(ray, out hit, 100.0F))
+      {
+        origin_ray = Vector3.Normalize(ray.GetPoint(hit.distance));
+      }
     }
+    /*
+    else
+    {
+      if(plane_collider.Raycast(ray, out hit, 100.0F))
+      {
+        origin_ray = Vector3.Normalize(ray.GetPoint(hit.distance));
+      }
+    }
+    */
 
     lazy_origin_ray = Vector3.Normalize(Vector3.Lerp(lazy_origin_ray, origin_ray, 0.01f));
 
@@ -211,7 +232,8 @@ public class GlobalScript : MonoBehaviour
               lazy_gaze_position =         lazy_origin_ray*dome_s;
       snapped_lazy_gaze_position = snapped_lazy_origin_ray*dome_s;
     }
-    else if((zoom_cur == 0 && zoom_t > 0.5) || zoom_cur > 0)
+    else if((zoom_cur == 0 && zoom_t >= 0.5) || zoom_cur != 0)
+    //else
     {
               lazy_gaze_position =         lazy_origin_ray*plane.transform.position.magnitude;
       snapped_lazy_gaze_position = snapped_lazy_origin_ray*plane.transform.position.magnitude;
