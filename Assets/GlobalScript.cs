@@ -5,6 +5,7 @@ using UnityEngine;
 public class GlobalScript : MonoBehaviour
 {
   Vector3 look_ahead;
+  Vector3 origin_pt;
   Vector3 origin_ray;
   Vector3 lazy_origin_ray;
   float lazy_origin_pitch;
@@ -33,6 +34,7 @@ public class GlobalScript : MonoBehaviour
   GameObject sun;
 
   GameObject pointer;
+  GameObject debug;
 
   //zoom
   int n_zooms;
@@ -48,9 +50,6 @@ public class GlobalScript : MonoBehaviour
   float zoom_grid_resolution_cur;
 
   Collider plane_collider;
-
-  //zoom 0 special
-  Collider dome_collider;
 
   //labels
   GameObject pointLabel;
@@ -74,6 +73,7 @@ public class GlobalScript : MonoBehaviour
   {
     look_ahead  = new Vector3(0,0,1);
 
+    origin_pt = look_ahead;
     origin_ray = look_ahead;
     lazy_origin_ray = look_ahead;
     lazy_origin_pitch = 0;
@@ -101,6 +101,7 @@ public class GlobalScript : MonoBehaviour
     sun.GetComponent<Renderer>().material.SetColor("_Color",Color.green);
 
     pointer = GameObject.Find("Pointer");
+    debug = GameObject.Find("Debug");
 
     //zoom
     n_zooms = 3;
@@ -130,10 +131,7 @@ public class GlobalScript : MonoBehaviour
 
     zoom_groups();
 
-    plane_collider = dome.GetComponent<Collider>();
-
-    //zoom 0 special
-    dome_collider = plane.GetComponent<Collider>();
+    plane_collider = plane.GetComponent<Collider>();
 
     pointLabel = (GameObject)Instantiate(label_prefab);
     pointLabelText = pointLabel.GetComponent<TextMesh>();
@@ -187,24 +185,21 @@ public class GlobalScript : MonoBehaviour
 
     Vector3 cast_vision = camera.transform.position + (camera.transform.rotation * look_ahead * (dome_s+1));
     pointer.transform.position = cast_vision;
-    Ray ray = new Ray(cast_vision, -Vector3.Normalize(cast_vision));
-    RaycastHit hit;
     if(zoom_cur == 0 && zoom_t < 0.5)
     {
-      if(dome_collider.Raycast(ray, out hit, 100.0F))
-      {
-        origin_ray = Vector3.Normalize(ray.GetPoint(hit.distance));
-      }
+      origin_pt = cast_vision;
+      origin_ray = Vector3.Normalize(origin_pt);
     }
-    /*
     else
     {
-      if(plane_collider.Raycast(ray, out hit, 100.0F))
+      Ray ray = new Ray(Vector3.zero, Vector3.Normalize(cast_vision));
+      RaycastHit hit;
+      if(plane_collider.Raycast(ray, out hit, 10000.0F))
       {
-        origin_ray = Vector3.Normalize(ray.GetPoint(hit.distance));
+        origin_pt = hit.point;
+        origin_ray = Vector3.Normalize(origin_pt);
       }
     }
-    */
 
     lazy_origin_ray = Vector3.Normalize(Vector3.Lerp(lazy_origin_ray, origin_ray, 0.01f));
 
@@ -232,11 +227,28 @@ public class GlobalScript : MonoBehaviour
               lazy_gaze_position =         lazy_origin_ray*dome_s;
       snapped_lazy_gaze_position = snapped_lazy_origin_ray*dome_s;
     }
-    else if((zoom_cur == 0 && zoom_t >= 0.5) || zoom_cur != 0)
-    //else
+    else
     {
-              lazy_gaze_position =         lazy_origin_ray*plane.transform.position.magnitude;
-      snapped_lazy_gaze_position = snapped_lazy_origin_ray*plane.transform.position.magnitude;
+      Ray ray = new Ray(Vector3.zero, lazy_origin_ray);
+      RaycastHit hit;
+      if(plane_collider.Raycast(ray, out hit, 10000.0F))
+      {
+        lazy_gaze_position = hit.point;
+      }
+      else
+      {
+        lazy_gaze_position = lazy_origin_ray*plane.transform.position.magnitude;
+      }
+
+      ray = new Ray(Vector3.zero, snapped_lazy_origin_ray);
+      if(plane_collider.Raycast(ray, out hit, 10000.0F))
+      {
+        snapped_lazy_gaze_position = hit.point*plane.transform.position.magnitude;
+      }
+      else
+      {
+        snapped_lazy_gaze_position = snapped_lazy_origin_ray*plane.transform.position.magnitude;
+      }
     }
 
         pointLabel.transform.position =         lazy_gaze_position;

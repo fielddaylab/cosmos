@@ -120,7 +120,7 @@
           band *= (window_r-frag_lazy_dist*v)/window_r;
 
           color.rgba = float4(shade,1,1,band);
-          //color.rgba = float4(shade,1,band,1);
+          //color.rgba = float4(shade,0,band,1);
 
           return color;
         }
