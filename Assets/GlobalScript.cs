@@ -94,9 +94,9 @@ public class GlobalScript : MonoBehaviour
     dome   = GameObject.Find("DomeGrid");
     plane  = GameObject.Find("PlaneGrid");
     ground = GameObject.Find("Ground");
-    ground.GetComponent<Renderer>().material.SetColor("_Color",Color.red);
+    ground.GetComponent<Renderer>().material.SetColor("_Color",Color.white);
     earth  = GameObject.Find("Earth");
-    earth.GetComponent<Renderer>().material.SetColor("_Color",Color.red);
+    earth.GetComponent<Renderer>().material.SetColor("_Color",Color.white);
     sun    = GameObject.Find("Sun");
     sun.GetComponent<Renderer>().material.SetColor("_Color",Color.green);
 
@@ -163,13 +163,18 @@ public class GlobalScript : MonoBehaviour
       if(zoom_cur != zoom_next)
       {
         plane.transform.position = zoom_target + Vector3.Normalize(zoom_target)*dome_s;
+        plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
       }
 
       if(zoom_t > 1)
       {
         zoom_t = 0;
         zoom_cur = zoom_next;
-        if(zoom_next == 0) ground.SetActive(true);
+        if(zoom_next == 0)
+        {
+          ground.SetActive(true);
+          plane.transform.position = new Vector3(0,0,0);
+        }
       }
 
       zoom_scale_cur = Mathf.Lerp(zoom_scale[zoom_cur],zoom_scale[zoom_next],zoom_t);
@@ -182,7 +187,6 @@ public class GlobalScript : MonoBehaviour
     camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
 
     Vector3 cast_vision = camera.transform.position + (camera.transform.rotation * look_ahead * (dome_s+1));
-    pointer.transform.position = cast_vision;
     if(zoom_cur == 0 && zoom_t < 0.5)
     {
       origin_pt = cast_vision;
