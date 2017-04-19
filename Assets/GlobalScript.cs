@@ -29,6 +29,7 @@ public class GlobalScript : MonoBehaviour
   //objects
   GameObject camera_house;
   new GameObject camera;
+  Vector3 old_cam_position;
   GameObject dome;
   GameObject plane;
   GameObject ground;
@@ -93,6 +94,7 @@ public class GlobalScript : MonoBehaviour
     //objects
     camera_house = GameObject.Find("CameraHouse");
     camera       = GameObject.Find("Main Camera");
+    old_cam_position = camera_house.transform.position;
     dome   = GameObject.Find("DomeGrid");
     plane  = GameObject.Find("PlaneGrid");
     ground = GameObject.Find("Ground");
@@ -174,9 +176,23 @@ public class GlobalScript : MonoBehaviour
     {
       zoom_t = 0.01f;
       zoom_next = (zoom_next+1)%n_zooms;
-      zoom_target_euler[zoom_cur] = new Vector2(snapped_lazy_origin_pitch,snapped_lazy_origin_yaw);
-      zoom_target = Quaternion.Euler(-Mathf.Rad2Deg*zoom_target_euler[zoom_cur].x, -Mathf.Rad2Deg*zoom_target_euler[zoom_cur].y+90, 0) * look_ahead * zoom_scale[zoom_next];
+      if(zoom_next == 0)
+      {
+        //zoom_target_euler[zoom_cur] = new Vector2(0,0); //don't change
+        zoom_target = new Vector3(0,0,0);
+      }
+      else
+      {
+        zoom_target_euler[zoom_cur] = new Vector2(snapped_lazy_origin_pitch,snapped_lazy_origin_yaw);
+        zoom_target = Quaternion.Euler(-Mathf.Rad2Deg*zoom_target_euler[zoom_cur].x, -Mathf.Rad2Deg*zoom_target_euler[zoom_cur].y+90, 0) * look_ahead * zoom_scale[zoom_next];
+      }
       if(zoom_next == 1) ground.SetActive(false);
+
+      if(zoom_next != 0)
+      {
+        plane.transform.position = zoom_target + Vector3.Normalize(zoom_target)*dome_s;
+        plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
+      }
     }
 
     if(zoom_t > 0)
@@ -185,13 +201,17 @@ public class GlobalScript : MonoBehaviour
 
       if(zoom_cur != zoom_next)
       {
-        plane.transform.position = zoom_target + Vector3.Normalize(zoom_target)*dome_s;
-        plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
+        zoom_cluster[zoom_next].transform.position = Vector3.Lerp(zoom_target*100,zoom_target,zoom_t);
+        zoom_cluster[zoom_cur].transform.position = Vector3.Lerp(zoom_target,zoom_target*0.01f,zoom_t);
       }
 
       if(zoom_t > 1)
       {
         zoom_t = 0;
+        zoom_cluster[zoom_next].transform.position = zoom_target;
+        zoom_cluster[zoom_cur].transform.position = zoom_target*0.01f;
+        camera_house.transform.position = zoom_target + new Vector3(0,1,0);
+        old_cam_position = camera_house.transform.position;
         zoom_cur = zoom_next;
         if(zoom_next == 0)
         {
@@ -202,11 +222,12 @@ public class GlobalScript : MonoBehaviour
 
       zoom_scale_cur = Mathf.Lerp(zoom_scale[zoom_cur],zoom_scale[zoom_next],zoom_t);
       zoom_grid_resolution_cur = Mathf.Lerp(zoom_grid_resolution[zoom_cur],zoom_grid_resolution[zoom_next],zoom_t);
+
+      camera_house.transform.position = Vector3.Lerp(old_cam_position, zoom_target + new Vector3(0,1,0),zoom_t);
     }
 
     zoom_groups();
 
-    camera_house.transform.position = Vector3.Normalize(zoom_target)*zoom_scale_cur+new Vector3(0,1,0);
     camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
 
     Vector3 cast_vision = camera.transform.position + (camera.transform.rotation * look_ahead * (dome_s+1));
@@ -282,7 +303,7 @@ public class GlobalScript : MonoBehaviour
 
     primaryLabel.transform.position = pointLabel.transform.position+new Vector3(0f,0.5f,0f);
     primaryLabel.transform.rotation = pointLabel.transform.rotation;
-    primaryLabelText.text = string.Format("{0}°,{1}°", (lazy_origin_pitch*Mathf.Rad2Deg).ToString("F1"), (lazy_origin_yaw*Mathf.Rad2Deg).ToString("F1"));
+    primaryLabelText.text = string.Format("{0}°,{1}°", (lazy_origin_yaw*Mathf.Rad2Deg).ToString("F1"), (lazy_origin_pitch*Mathf.Rad2Deg).ToString("F1"));
 
     //shader inputs
     dome_grid_material.SetVector(camera_position_id,camera.transform.position);
