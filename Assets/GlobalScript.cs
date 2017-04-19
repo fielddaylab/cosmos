@@ -147,6 +147,7 @@ public class GlobalScript : MonoBehaviour
         star.transform.position = starpos;
         star.transform.SetParent(zoom_cluster[i].transform,false);
       }
+      if(i != 0) zoom_cluster[i].transform.position = new Vector3(1000,0,0); //out of the way
     }
 
     zoom_target = Vector3.zero;
@@ -199,11 +200,8 @@ public class GlobalScript : MonoBehaviour
     {
       zoom_t += 0.01f;
 
-      if(zoom_cur != zoom_next)
-      {
-        zoom_cluster[zoom_next].transform.position = Vector3.Lerp(zoom_target*100,zoom_target,zoom_t);
-        zoom_cluster[zoom_cur].transform.position = Vector3.Lerp(zoom_target,zoom_target*0.01f,zoom_t);
-      }
+      zoom_cluster[zoom_next].transform.position = Vector3.Lerp(zoom_target*100,zoom_target,zoom_t);
+      zoom_cluster[zoom_cur].transform.position = Vector3.Lerp(zoom_target,zoom_target*0.01f,zoom_t);
 
       if(zoom_t > 1)
       {
