@@ -33,8 +33,6 @@ public class GlobalScript : MonoBehaviour
   GameObject dome;
   GameObject plane;
   GameObject ground;
-  GameObject earth;
-  GameObject sun;
 
   GameObject pointer;
   GameObject debug;
@@ -44,13 +42,11 @@ public class GlobalScript : MonoBehaviour
   int zoom_cur;
   int zoom_next;
   float zoom_t;
-  GameObject[] zoom_group;
   GameObject[] zoom_cluster;
-  float[] zoom_scale;
+  float[,] zoom_cluster_zoom;
   float[] zoom_grid_resolution;
   Vector2[] zoom_target_euler; //yaw/pitch
 
-  float zoom_scale_cur;
   float zoom_grid_resolution_cur;
 
   Collider plane_collider;
@@ -62,15 +58,6 @@ public class GlobalScript : MonoBehaviour
   TextMesh snapPointLabelText;
   GameObject primaryLabel;
   TextMesh primaryLabelText;
-
-  void zoom_groups()
-  {
-    for(int i = 0; i < n_zooms; i++)
-    {
-      float scale = zoom_scale[i]/zoom_scale_cur;
-      zoom_group[i].transform.localScale = new Vector3(scale,scale,scale);
-    }
-  }
 
   void Start()
   {
@@ -99,33 +86,35 @@ public class GlobalScript : MonoBehaviour
     plane  = GameObject.Find("PlaneGrid");
     ground = GameObject.Find("Ground");
     ground.GetComponent<Renderer>().material.SetColor("_Color",Color.white);
-    earth  = GameObject.Find("Earth");
-    earth.GetComponent<Renderer>().material.SetColor("_Color",Color.white);
-    sun    = GameObject.Find("Sun");
-    sun.GetComponent<Renderer>().material.SetColor("_Color",Color.green);
 
     pointer = GameObject.Find("Pointer");
+    pointer.active = false;
     debug = GameObject.Find("Debug");
+    debug.active = false;
 
     //zoom
     n_zooms = 3;
     zoom_cur = 0;
     zoom_next = 0;
     zoom_t = 0;
-    zoom_group = new GameObject[3];
     zoom_cluster = new GameObject[3];
-    zoom_scale = new float[3];
+    zoom_cluster_zoom = new float[3,3];
     zoom_target_euler = new Vector2[3];
     zoom_grid_resolution = new float[3];
-    zoom_group[0] = GameObject.Find("Zoom0");
-    zoom_group[1] = GameObject.Find("Zoom1");
-    zoom_group[2] = GameObject.Find("Zoom2");
     zoom_cluster[0] = GameObject.Find("Zoom0Cluster");
     zoom_cluster[1] = GameObject.Find("Zoom1Cluster");
     zoom_cluster[2] = GameObject.Find("Zoom2Cluster");
+    zoom_cluster_zoom[0,0] = 1f;
+    zoom_cluster_zoom[0,1] = 0.00001f;
+    zoom_cluster_zoom[0,2] = 0.0000001f;
+    zoom_cluster_zoom[1,0] = 1f;
+    zoom_cluster_zoom[1,1] = 1f;
+    zoom_cluster_zoom[1,2] = 1f;
+    zoom_cluster_zoom[2,0] = 1f;
+    zoom_cluster_zoom[2,1] = 1f;
+    zoom_cluster_zoom[2,2] = 0.01f;
     for(int i = 0; i < n_zooms; i++)
     {
-      zoom_scale[i] = zoom_group[i].transform.localScale.x;
       zoom_target_euler[i] = Vector2.zero;
     }
     zoom_grid_resolution[0] = 10;
@@ -134,28 +123,21 @@ public class GlobalScript : MonoBehaviour
 
     GameObject star;
     Vector3 starpos;
-    for(int i = 0; i < n_zooms; i++)
+    for(int i = 0; i < 1000; i++)
     {
-      for(int j = 0; j < 100; j++)
-      {
-        star = (GameObject)Instantiate(star_prefab);
+      star = (GameObject)Instantiate(star_prefab);
+      starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
+      while(starpos.sqrMagnitude > 1)
         starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
-        while(starpos.sqrMagnitude > 1)
-          starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
-        Vector3.Normalize(starpos);
-        starpos *= Random.Range(300f,320f);
-        star.transform.position = starpos;
-        star.transform.SetParent(zoom_cluster[i].transform,false);
-      }
-      if(i != 0) zoom_cluster[i].transform.position = new Vector3(1000,0,0); //out of the way
+      Vector3.Normalize(starpos);
+      starpos *= Random.Range(400f,520f);
+      star.transform.position = starpos;
+      star.transform.SetParent(zoom_cluster[2].transform,false);
     }
 
     zoom_target = Vector3.zero;
 
-    zoom_scale_cur = zoom_scale[zoom_cur];
     zoom_grid_resolution_cur = zoom_grid_resolution[zoom_cur];
-
-    zoom_groups();
 
     plane_collider = plane.GetComponent<Collider>();
 
@@ -185,7 +167,7 @@ public class GlobalScript : MonoBehaviour
       else
       {
         zoom_target_euler[zoom_cur] = new Vector2(snapped_lazy_origin_pitch,snapped_lazy_origin_yaw);
-        zoom_target = Quaternion.Euler(-Mathf.Rad2Deg*zoom_target_euler[zoom_cur].x, -Mathf.Rad2Deg*zoom_target_euler[zoom_cur].y+90, 0) * look_ahead * zoom_scale[zoom_next];
+        zoom_target = Quaternion.Euler(-Mathf.Rad2Deg*zoom_target_euler[zoom_cur].x, -Mathf.Rad2Deg*zoom_target_euler[zoom_cur].y+90, 0) * look_ahead * Mathf.Pow(10,zoom_next);
       }
       if(zoom_next == 1) ground.SetActive(false);
 
@@ -200,14 +182,9 @@ public class GlobalScript : MonoBehaviour
     {
       zoom_t += 0.01f;
 
-      zoom_cluster[zoom_next].transform.position = Vector3.Lerp(zoom_target*100,zoom_target,zoom_t);
-      zoom_cluster[zoom_cur].transform.position = Vector3.Lerp(zoom_target,zoom_target*0.01f,zoom_t);
-
       if(zoom_t > 1)
       {
         zoom_t = 0;
-        zoom_cluster[zoom_next].transform.position = zoom_target;
-        zoom_cluster[zoom_cur].transform.position = zoom_target*0.01f;
         camera_house.transform.position = zoom_target + new Vector3(0,1,0);
         old_cam_position = camera_house.transform.position;
         zoom_cur = zoom_next;
@@ -218,13 +195,17 @@ public class GlobalScript : MonoBehaviour
         }
       }
 
-      zoom_scale_cur = Mathf.Lerp(zoom_scale[zoom_cur],zoom_scale[zoom_next],zoom_t);
+      for(int i = 0; i < n_zooms; i++)
+      {
+        float s = Mathf.Lerp(zoom_cluster_zoom[i,zoom_cur],zoom_cluster_zoom[i,zoom_next],zoom_t);
+        zoom_cluster[i].transform.localScale = new Vector3(s,s,s);
+        //zoom_cluster[zoom_cur].transform.position = Vector3.Lerp(zoom_target,zoom_target*0.01f,zoom_t);
+      }
+
       zoom_grid_resolution_cur = Mathf.Lerp(zoom_grid_resolution[zoom_cur],zoom_grid_resolution[zoom_next],zoom_t);
 
-      camera_house.transform.position = Vector3.Lerp(old_cam_position, zoom_target + new Vector3(0,1,0),zoom_t);
+      camera_house.transform.position = Vector3.Lerp(old_cam_position, zoom_target + new Vector3(0,1,0), zoom_t);
     }
-
-    zoom_groups();
 
     camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
 
