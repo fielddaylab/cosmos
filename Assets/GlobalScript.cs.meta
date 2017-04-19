@@ -1,10 +1,16 @@
 fileFormatVersion: 2
 guid: 138633209d16c4ec5817bd2f71fc962b
-timeCreated: 1489613315
+timeCreated: 1492614417
 licenseType: Free
 MonoImporter:
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - dome_grid_material: {fileID: 2100000, guid: f76de636100f04052836c5df73ae7899,
+      type: 2}
+  - label_prefab: {fileID: 1568541558979782, guid: 9e81f05cdbdde46318e0465e2b63e83a,
+      type: 2}
+  - star_prefab: {fileID: 1806041150253560, guid: d9587705901164623b7c26eac536b326,
+      type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

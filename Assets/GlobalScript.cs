@@ -24,6 +24,7 @@ public class GlobalScript : MonoBehaviour
   //unity-set
   public Material dome_grid_material;
   public GameObject label_prefab;
+  public GameObject star_prefab;
 
   //objects
   GameObject camera_house;
@@ -43,6 +44,7 @@ public class GlobalScript : MonoBehaviour
   int zoom_next;
   float zoom_t;
   GameObject[] zoom_group;
+  GameObject[] zoom_cluster;
   float[] zoom_scale;
   float[] zoom_grid_resolution;
   Vector2[] zoom_target_euler; //yaw/pitch
@@ -109,12 +111,16 @@ public class GlobalScript : MonoBehaviour
     zoom_next = 0;
     zoom_t = 0;
     zoom_group = new GameObject[3];
+    zoom_cluster = new GameObject[3];
     zoom_scale = new float[3];
     zoom_target_euler = new Vector2[3];
     zoom_grid_resolution = new float[3];
     zoom_group[0] = GameObject.Find("Zoom0");
     zoom_group[1] = GameObject.Find("Zoom1");
     zoom_group[2] = GameObject.Find("Zoom2");
+    zoom_cluster[0] = GameObject.Find("Zoom0Cluster");
+    zoom_cluster[1] = GameObject.Find("Zoom1Cluster");
+    zoom_cluster[2] = GameObject.Find("Zoom2Cluster");
     for(int i = 0; i < n_zooms; i++)
     {
       zoom_scale[i] = zoom_group[i].transform.localScale.x;
@@ -123,6 +129,23 @@ public class GlobalScript : MonoBehaviour
     zoom_grid_resolution[0] = 10;
     zoom_grid_resolution[1] = 5;
     zoom_grid_resolution[2] = 1;
+
+    GameObject star;
+    Vector3 starpos;
+    for(int i = 0; i < n_zooms; i++)
+    {
+      for(int j = 0; j < 100; j++)
+      {
+        star = (GameObject)Instantiate(star_prefab);
+        starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
+        while(starpos.sqrMagnitude > 1)
+          starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
+        Vector3.Normalize(starpos);
+        starpos *= Random.Range(300f,320f);
+        star.transform.position = starpos;
+        star.transform.SetParent(zoom_cluster[i].transform,false);
+      }
+    }
 
     zoom_target = Vector3.zero;
 
