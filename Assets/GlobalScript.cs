@@ -196,7 +196,7 @@ public class GlobalScript : MonoBehaviour
 
       if(zoom_next != 0)
       {
-        plane.transform.position = zoom_target + Vector3.Normalize(zoom_target)*dome_s;
+        plane.transform.position = zoom_target + Vector3.Normalize(zoom_target)*(dome_s*zoom_next);
         plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
       }
       //float s = 2*(zoom_target.magnitude+dome_s);
@@ -205,7 +205,7 @@ public class GlobalScript : MonoBehaviour
 
     if(zoom_t > 0)
     {
-      zoom_t += 0.01f;
+      zoom_t += 0.05f;
 
       if(zoom_t > 1)
       {
