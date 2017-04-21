@@ -57,6 +57,8 @@ public class GlobalScript : MonoBehaviour
   TextMesh snapPointLabelText;
   GameObject primaryLabel;
   TextMesh primaryLabelText;
+  GameObject earthLabel;
+  TextMesh earthLabelText;
 
   void Start()
   {
@@ -163,6 +165,8 @@ public class GlobalScript : MonoBehaviour
     snapPointLabelText.text = "o";
     primaryLabel = (GameObject)Instantiate(label_prefab);
     primaryLabelText = primaryLabel.GetComponent<TextMesh>();
+    earthLabel = (GameObject)Instantiate(label_prefab);
+    earthLabelText = earthLabel.GetComponent<TextMesh>();
   }
 
   void Update()
@@ -312,6 +316,9 @@ public class GlobalScript : MonoBehaviour
     primaryLabel.transform.position = pointLabel.transform.position+new Vector3(0f,0.5f,0f);
     primaryLabel.transform.rotation = pointLabel.transform.rotation;
 
+    earthLabel.transform.position = camera_house.transform.position.normalized * (camera_house.transform.position.magnitude-dome_s);
+    earthLabel.transform.rotation = Quaternion.Euler(lazy_origin_euler.x*Mathf.Rad2Deg,270f-lazy_origin_euler.y*Mathf.Rad2Deg,0);
+    earthLabelText.text = "Earth";
 
     Vector2 lazy_origin_inflated_euler = lazy_origin_euler;
     if(zoom_cur != 0) lazy_origin_inflated_euler = zoom_target_inflated_euler[zoom_cur-1]+((lazy_origin_euler-zoom_target_euler[zoom_cur-1])/zoom_target_euler_inflation[zoom_cur]);
