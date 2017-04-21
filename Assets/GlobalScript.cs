@@ -17,10 +17,11 @@ public class GlobalScript : MonoBehaviour
   int snapped_lazy_origin_pitch_id;
   int snapped_lazy_origin_yaw_id;
   int grid_resolution_id;
+  int grid_alpha_id;
   Vector3 zoom_target;
 
   //unity-set
-  public Material dome_grid_material;
+  public Material grid_material;
   public GameObject label_prefab;
   public GameObject star_prefab;
 
@@ -45,6 +46,7 @@ public class GlobalScript : MonoBehaviour
   float[] zoom_target_euler_inflation;
 
   float zoom_grid_resolution_cur;
+  float grid_alpha;
 
   Collider plane_collider;
 
@@ -72,6 +74,7 @@ public class GlobalScript : MonoBehaviour
     snapped_lazy_origin_pitch_id = Shader.PropertyToID("snapped_lazy_origin_pitch");
     snapped_lazy_origin_yaw_id = Shader.PropertyToID("snapped_lazy_origin_yaw");
     grid_resolution_id = Shader.PropertyToID("grid_resolution");
+    grid_alpha_id = Shader.PropertyToID("grid_alpha");
 
     //objects
     camera_house = GameObject.Find("CameraHouse");
@@ -139,8 +142,8 @@ public class GlobalScript : MonoBehaviour
       starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
       while(starpos.sqrMagnitude > 1)
         starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
-      Vector3.Normalize(starpos);
-      starpos *= Random.Range(400f,520f);
+      starpos = Vector3.Normalize(starpos);
+      starpos *= Random.Range(200f,820f);
       star.transform.position = starpos;
       star.transform.SetParent(zoom_cluster[2].transform,false);
     }
@@ -148,6 +151,7 @@ public class GlobalScript : MonoBehaviour
     zoom_target = Vector3.zero;
 
     zoom_grid_resolution_cur = zoom_grid_resolution[zoom_cur];
+    grid_alpha = 1f;
 
     plane_collider = plane.GetComponent<Collider>();
 
@@ -195,6 +199,8 @@ public class GlobalScript : MonoBehaviour
         plane.transform.position = zoom_target + Vector3.Normalize(zoom_target)*dome_s;
         plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
       }
+      //float s = 2*(zoom_target.magnitude+dome_s);
+      //dome.transform.localScale = new Vector3(s,s,s);
     }
 
     if(zoom_t > 0)
@@ -224,6 +230,10 @@ public class GlobalScript : MonoBehaviour
       zoom_grid_resolution_cur = Mathf.Lerp(zoom_grid_resolution[zoom_cur],zoom_grid_resolution[zoom_next],zoom_t);
 
       camera_house.transform.position = Vector3.Lerp(old_cam_position, zoom_target + new Vector3(0,1,0), zoom_t);
+
+      grid_alpha = ((zoom_t-0.5f)*2f);
+      grid_alpha = grid_alpha*grid_alpha*grid_alpha*grid_alpha;
+      grid_alpha *= grid_alpha;
     }
 
     camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
@@ -310,11 +320,12 @@ public class GlobalScript : MonoBehaviour
     primaryLabelText.text = string.Format("{0}°,{1}°", lazy_origin_inflated_euler.y.ToString("F1"), lazy_origin_inflated_euler.x.ToString("F1"));
 
     //shader inputs
-    dome_grid_material.SetVector(camera_position_id,camera.transform.position);
-    dome_grid_material.SetVector(lazy_origin_ray_id,lazy_origin_ray);
-    dome_grid_material.SetFloat(snapped_lazy_origin_pitch_id,snapped_lazy_origin_euler.x);
-    dome_grid_material.SetFloat(snapped_lazy_origin_yaw_id,snapped_lazy_origin_euler.y);
-    dome_grid_material.SetFloat(grid_resolution_id,grid_resolution);
+    grid_material.SetVector(camera_position_id,camera.transform.position);
+    grid_material.SetVector(lazy_origin_ray_id,lazy_origin_ray);
+    grid_material.SetFloat(snapped_lazy_origin_pitch_id,snapped_lazy_origin_euler.x);
+    grid_material.SetFloat(snapped_lazy_origin_yaw_id,snapped_lazy_origin_euler.y);
+    grid_material.SetFloat(grid_resolution_id,grid_resolution);
+    grid_material.SetFloat(grid_alpha_id,grid_alpha);
   }
 
 }

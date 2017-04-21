@@ -1,4 +1,4 @@
-﻿Shader "Unlit/DomeGridShader"
+﻿Shader "Unlit/GridShader"
 {
   Properties
   {
@@ -22,6 +22,7 @@
         float snapped_lazy_origin_pitch;
         float snapped_lazy_origin_yaw;
         float grid_resolution;
+        float grid_alpha;
 
         struct v2f
         {
@@ -119,7 +120,7 @@
           v = ((grid_resolution-10)/(5-10))*(10-5)+5;
           band *= (window_r-frag_lazy_dist*v)/window_r;
 
-          color.rgba = float4(shade,1,1,band);
+          color.rgba = float4(shade,1,1,band*grid_alpha);
           //color.rgba = float4(shade,0,band,1);
 
           return color;
