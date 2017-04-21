@@ -32,9 +32,6 @@ public class GlobalScript : MonoBehaviour
   GameObject plane;
   GameObject ground;
 
-  GameObject pointer;
-  GameObject debug;
-
   //zoom
   int n_zooms;
   int zoom_cur;
@@ -85,45 +82,54 @@ public class GlobalScript : MonoBehaviour
     ground = GameObject.Find("Ground");
     ground.GetComponent<Renderer>().material.SetColor("_Color",Color.white);
 
-    pointer = GameObject.Find("Pointer");
-    pointer.SetActive(false);
-    debug = GameObject.Find("Debug");
-    debug.SetActive(false);
-
     //zoom
-    n_zooms = 3;
+    n_zooms = 4;
     zoom_cur = 0;
     zoom_next = 0;
     zoom_t = 0;
-    zoom_cluster = new GameObject[3];
-    zoom_cluster_zoom = new float[3,3];
-    zoom_target_euler = new Vector2[3];
-    zoom_target_inflated_euler = new Vector2[3];
-    zoom_target_euler_inflation = new float[3];
-    zoom_grid_resolution = new float[3];
+    zoom_cluster = new GameObject[n_zooms];
+    zoom_cluster_zoom = new float[n_zooms,n_zooms];
+    zoom_target_euler = new Vector2[n_zooms];
+    zoom_target_inflated_euler = new Vector2[n_zooms];
+    zoom_target_euler_inflation = new float[n_zooms];
+    zoom_grid_resolution = new float[n_zooms];
     zoom_cluster[0] = GameObject.Find("Zoom0Cluster");
-    zoom_cluster[1] = GameObject.Find("Zoom1Cluster");
-    zoom_cluster[2] = GameObject.Find("Zoom2Cluster");
+    for(int i = 1; i < n_zooms; i++)
+      zoom_cluster[i] = new GameObject();
+    //
     zoom_cluster_zoom[0,0] = 1f;
     zoom_cluster_zoom[0,1] = 0.00001f;
     zoom_cluster_zoom[0,2] = 0.0000001f;
+    zoom_cluster_zoom[0,3] = 0.0000001f;
+    //
     zoom_cluster_zoom[1,0] = 1f;
     zoom_cluster_zoom[1,1] = 1f;
     zoom_cluster_zoom[1,2] = 1f;
+    zoom_cluster_zoom[1,3] = 1f;
+    //
     zoom_cluster_zoom[2,0] = 1f;
     zoom_cluster_zoom[2,1] = 1f;
     zoom_cluster_zoom[2,2] = 0.01f;
+    zoom_cluster_zoom[2,3] = 0.01f;
+    //
+    zoom_cluster_zoom[3,0] = 1f;
+    zoom_cluster_zoom[3,1] = 1f;
+    zoom_cluster_zoom[3,2] = 0.01f;
+    zoom_cluster_zoom[3,3] = 0.01f;
+
     for(int i = 0; i < n_zooms; i++)
     {
       zoom_target_euler[i] = Vector2.zero;
       zoom_target_inflated_euler[i] = Vector2.zero;
     }
-    zoom_target_euler_inflation[0] = 1;
-    zoom_target_euler_inflation[1] = 5;
-    zoom_target_euler_inflation[2] = 10;
-    zoom_grid_resolution[0] = 10;
-    zoom_grid_resolution[1] = 5;
-    zoom_grid_resolution[2] = 1;
+    zoom_target_euler_inflation[0] = 1f;
+    zoom_target_euler_inflation[1] = 5f;
+    zoom_target_euler_inflation[2] = 10f;
+    zoom_target_euler_inflation[3] = 15f;
+    zoom_grid_resolution[0] = 10f;
+    zoom_grid_resolution[1] = 5f;
+    zoom_grid_resolution[2] = 1f;
+    zoom_grid_resolution[3] = 0.5f;
 
     GameObject star;
     Vector3 starpos;
