@@ -140,7 +140,36 @@ public class GlobalScript : MonoBehaviour
 
     GameObject star;
     Vector3 starpos;
-    for(int i = 0; i < 10000; i++)
+
+    int n_stars = 1000;
+    star = (GameObject)Instantiate(star_prefab);
+    CombineInstance[] combine = new CombineInstance[n_stars];
+
+    for(int i = 0; i < n_stars; i++)
+    {
+      starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
+      while(starpos.sqrMagnitude > 1)
+        starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
+      starpos = Vector3.Normalize(starpos);
+      starpos *= Random.Range(200f,820f);
+      star.transform.position = starpos;
+      star.transform.rotation = Quaternion.Euler(Random.Range(0f,360f),Random.Range(0f,360f),Random.Range(0f,360f));
+      star.transform.localScale = new Vector3(0.5f,0.5f,0.5f);
+
+      combine[i].mesh = star.transform.GetComponent<MeshFilter>().mesh;
+      combine[i].transform = star.transform.localToWorldMatrix;
+    }
+
+    star.transform.position = new Vector3(0,0,0);
+    star.transform.rotation = Quaternion.Euler(0,0,0);
+    star.transform.localScale = new Vector3(1,1,1);
+    star.transform.SetParent(zoom_cluster[2].transform,false);
+    star.transform.GetComponent<MeshFilter>().mesh = new Mesh();
+    star.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
+
+
+/*
+    for(int i = 0; i < 100000; i++)
     {
       star = (GameObject)Instantiate(star_prefab);
       starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
@@ -152,8 +181,9 @@ public class GlobalScript : MonoBehaviour
       star.transform.SetParent(zoom_cluster[2].transform,false);
       star.transform.rotation = Quaternion.Euler(Random.Range(0f,360f),Random.Range(0f,360f),Random.Range(0f,360f));
       star.transform.localScale = new Vector3(0.5f,0.5f,0.5f);
-      star.isStatic = false;
+      //star.isStatic = false;
     }
+    */
 
     zoom_target = Vector3.zero;
 
