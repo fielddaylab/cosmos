@@ -101,24 +101,27 @@ public class GlobalScript : MonoBehaviour
     zoom_target_euler_inflation = new float[n_zooms];
     zoom_grid_resolution = new float[n_zooms];
     zoom_cluster[0] = GameObject.Find("Zoom0Cluster");
-    for(int i = 1; i < n_zooms; i++)
+    zoom_cluster[1] = GameObject.Find("Zoom1Cluster");
+    zoom_cluster[2] = GameObject.Find("Zoom2Cluster");
+    for(int i = 3; i < n_zooms; i++)
       zoom_cluster[i] = new GameObject();
-    //
-    zoom_cluster_zoom[0,0] = 1f;
-    zoom_cluster_zoom[0,1] = 0.00001f;
-    zoom_cluster_zoom[0,2] = 0.0000001f;
-    zoom_cluster_zoom[0,3] = 0.0000001f;
-    //
+
+    // earth
+    zoom_cluster_zoom[0,0] = 1f;         //on earth
+    zoom_cluster_zoom[0,1] = 0.00001f;   //on solar system
+    zoom_cluster_zoom[0,2] = 0.0000001f; //on galaxy
+    zoom_cluster_zoom[0,3] = 0.0000001f; //on beyond
+    // solar system
     zoom_cluster_zoom[1,0] = 1f;
     zoom_cluster_zoom[1,1] = 1f;
     zoom_cluster_zoom[1,2] = 1f;
     zoom_cluster_zoom[1,3] = 1f;
-    //
+    // galaxy
     zoom_cluster_zoom[2,0] = 1f;
     zoom_cluster_zoom[2,1] = 1f;
     zoom_cluster_zoom[2,2] = 0.01f;
     zoom_cluster_zoom[2,3] = 0.01f;
-    //
+    // beyond
     zoom_cluster_zoom[3,0] = 1f;
     zoom_cluster_zoom[3,1] = 1f;
     zoom_cluster_zoom[3,2] = 0.01f;
@@ -142,7 +145,7 @@ public class GlobalScript : MonoBehaviour
     GameObject star;
     Vector3 starpos;
 
-    int n_stars = 10000;
+    int n_stars = 50000;
     int n_groups = (int)Mathf.Ceil(n_stars/1000);
     int n_stars_in_group;
     star_groups = new GameObject[n_groups];
@@ -155,9 +158,14 @@ public class GlobalScript : MonoBehaviour
 
       for(int j = 0; j < n_stars_in_group; j++)
       {
+        bool good_star = false;
         starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
-        while(starpos.sqrMagnitude > 1)
+        good_star = (starpos.sqrMagnitude < Random.Range(0f,1f));
+        while(!good_star)
+        {
           starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
+          good_star = (starpos.sqrMagnitude < Random.Range(0f,1f));
+        }
         starpos = Vector3.Normalize(starpos);
         starpos *= Random.Range(200f,820f);
 
@@ -180,23 +188,6 @@ public class GlobalScript : MonoBehaviour
       n_stars -= n_stars_in_group;
     }
 
-
-/*
-    for(int i = 0; i < 100000; i++)
-    {
-      star = (GameObject)Instantiate(star_prefab);
-      starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
-      while(starpos.sqrMagnitude > 1)
-        starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
-      starpos = Vector3.Normalize(starpos);
-      starpos *= Random.Range(200f,820f);
-      star.transform.position = starpos;
-      star.transform.SetParent(zoom_cluster[2].transform,false);
-      star.transform.rotation = Quaternion.Euler(Random.Range(0f,360f),Random.Range(0f,360f),Random.Range(0f,360f));
-      star.transform.localScale = new Vector3(0.5f,0.5f,0.5f);
-      //star.isStatic = false;
-    }
-    */
 
     zoom_target = Vector3.zero;
 
@@ -278,7 +269,6 @@ public class GlobalScript : MonoBehaviour
       {
         float s = Mathf.Lerp(zoom_cluster_zoom[i,zoom_cur],zoom_cluster_zoom[i,zoom_next],zoom_t);
         zoom_cluster[i].transform.localScale = new Vector3(s,s,s);
-        //zoom_cluster[zoom_cur].transform.position = Vector3.Lerp(zoom_target,zoom_target*0.01f,zoom_t);
       }
 
       zoom_grid_resolution_cur = Mathf.Lerp(zoom_grid_resolution[zoom_cur],zoom_grid_resolution[zoom_next],zoom_t);
@@ -288,6 +278,14 @@ public class GlobalScript : MonoBehaviour
       grid_alpha = ((zoom_t-0.5f)*2f);
       grid_alpha = grid_alpha*grid_alpha*grid_alpha*grid_alpha;
       grid_alpha *= grid_alpha;
+    }
+    else
+    {
+      for(int i = 0; i < n_zooms; i++)
+      {
+        float s = zoom_cluster_zoom[i,zoom_cur];
+        zoom_cluster[i].transform.localScale = new Vector3(s,s,s);
+      }
     }
 
     camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
