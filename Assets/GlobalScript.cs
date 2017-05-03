@@ -138,34 +138,47 @@ public class GlobalScript : MonoBehaviour
     zoom_grid_resolution[2] = 1f;
     zoom_grid_resolution[3] = 0.5f;
 
+    GameObject[] star_groups;
     GameObject star;
     Vector3 starpos;
 
-    int n_stars = 1000;
+    int n_stars = 10000;
+    int n_groups = (int)Mathf.Ceil(n_stars/1000);
+    int n_stars_in_group;
+    star_groups = new GameObject[n_groups];
     star = (GameObject)Instantiate(star_prefab);
-    CombineInstance[] combine = new CombineInstance[n_stars];
 
-    for(int i = 0; i < n_stars; i++)
+    for(int i = 0; i < n_groups; i++)
     {
-      starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
-      while(starpos.sqrMagnitude > 1)
+      n_stars_in_group = Mathf.Min(1000,n_stars);
+      CombineInstance[] combine = new CombineInstance[n_stars_in_group];
+
+      for(int j = 0; j < n_stars_in_group; j++)
+      {
         starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
-      starpos = Vector3.Normalize(starpos);
-      starpos *= Random.Range(200f,820f);
-      star.transform.position = starpos;
-      star.transform.rotation = Quaternion.Euler(Random.Range(0f,360f),Random.Range(0f,360f),Random.Range(0f,360f));
-      star.transform.localScale = new Vector3(0.5f,0.5f,0.5f);
+        while(starpos.sqrMagnitude > 1)
+          starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
+        starpos = Vector3.Normalize(starpos);
+        starpos *= Random.Range(200f,820f);
 
-      combine[i].mesh = star.transform.GetComponent<MeshFilter>().mesh;
-      combine[i].transform = star.transform.localToWorldMatrix;
+        star.transform.position = starpos;
+        star.transform.rotation = Quaternion.Euler(Random.Range(0f,360f),Random.Range(0f,360f),Random.Range(0f,360f));
+        star.transform.localScale = new Vector3(0.5f,0.5f,0.5f);
+
+        combine[j].mesh = star.transform.GetComponent<MeshFilter>().mesh;
+        combine[j].transform = star.transform.localToWorldMatrix;
+      }
+
+      star_groups[i] = (GameObject)Instantiate(star_prefab);
+      star_groups[i].transform.position = new Vector3(0,0,0);
+      star_groups[i].transform.rotation = Quaternion.Euler(0,0,0);
+      star_groups[i].transform.localScale = new Vector3(1,1,1);
+      star_groups[i].transform.SetParent(zoom_cluster[2].transform,false);
+      star_groups[i].transform.GetComponent<MeshFilter>().mesh = new Mesh();
+      star_groups[i].transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
+
+      n_stars -= n_stars_in_group;
     }
-
-    star.transform.position = new Vector3(0,0,0);
-    star.transform.rotation = Quaternion.Euler(0,0,0);
-    star.transform.localScale = new Vector3(1,1,1);
-    star.transform.SetParent(zoom_cluster[2].transform,false);
-    star.transform.GetComponent<MeshFilter>().mesh = new Mesh();
-    star.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
 
 
 /*
