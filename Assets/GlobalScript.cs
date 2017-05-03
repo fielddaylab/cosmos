@@ -217,7 +217,9 @@ public class GlobalScript : MonoBehaviour
     if(zoom_t == 0 && Input.GetMouseButtonDown(0))
     {
       zoom_t = 0.01f;
-      zoom_next = (zoom_next+1)%n_zooms;
+      Vector3 view_dir = camera.transform.rotation * look_ahead;
+      if(Vector3.Dot(view_dir,camera_house.transform.position.normalized) < 0) zoom_next = 0;
+      else zoom_next = (zoom_next+1)%n_zooms;
       if(zoom_next == 0)
       {
         //zoom_target_euler[zoom_cur] = new Vector2(0,0); //don't change
