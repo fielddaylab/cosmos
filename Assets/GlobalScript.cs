@@ -33,6 +33,7 @@ public class GlobalScript : MonoBehaviour
   GameObject plane;
   GameObject ground;
   GameObject blackhole;
+  GameObject eyeray;
 
   //zoom
   int n_zooms;
@@ -91,6 +92,7 @@ public class GlobalScript : MonoBehaviour
     ground = GameObject.Find("Ground");
     //ground.GetComponent<Renderer>().material.SetColor("_Color",Color.white);
     blackhole = GameObject.Find("BlackHole");
+    eyeray = GameObject.Find("Ray");
 
     //zoom
     n_zooms = 4;
@@ -156,7 +158,7 @@ public class GlobalScript : MonoBehaviour
     GameObject star;
     Vector3 starpos;
 
-    int n_stars = 5000;
+    int n_stars = 50000;
     int n_groups = (int)Mathf.Ceil(n_stars/1000);
     int n_stars_in_group;
     star_groups = new GameObject[n_groups];
@@ -374,6 +376,9 @@ public class GlobalScript : MonoBehaviour
         snapped_lazy_gaze_position = snapped_lazy_origin_ray*plane.transform.position.magnitude;
       }
     }
+
+    eyeray.GetComponent<LineRenderer>().SetPosition(1,lazy_gaze_position);
+    eyeray.GetComponent<LineRenderer>().SetPosition(2,lazy_gaze_position*2);
 
         pointLabel.transform.position =         lazy_gaze_position;
     snapPointLabel.transform.position = snapped_lazy_gaze_position;
