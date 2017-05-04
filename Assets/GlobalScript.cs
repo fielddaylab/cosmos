@@ -32,6 +32,7 @@ public class GlobalScript : MonoBehaviour
   GameObject dome;
   GameObject plane;
   GameObject ground;
+  GameObject blackhole;
 
   //zoom
   int n_zooms;
@@ -90,7 +91,8 @@ public class GlobalScript : MonoBehaviour
     dome   = GameObject.Find("DomeGrid");
     plane  = GameObject.Find("PlaneGrid");
     ground = GameObject.Find("Ground");
-    ground.GetComponent<Renderer>().material.SetColor("_Color",Color.white);
+    //ground.GetComponent<Renderer>().material.SetColor("_Color",Color.white);
+    blackhole = GameObject.Find("BlackHole");
 
     //zoom
     n_zooms = 4;
@@ -265,6 +267,9 @@ public class GlobalScript : MonoBehaviour
           break;
       }
       plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
+
+      if(zoom_next == 3)
+        blackhole.transform.position = plane.transform.position;//zoom_target + Vector3.Normalize(zoom_target)*(dome_s*5);
     }
 
     if(zoom_t > 0)
