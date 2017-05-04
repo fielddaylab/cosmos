@@ -63,8 +63,6 @@ public class GlobalScript : MonoBehaviour
   TextMesh primaryLabelText;
   GameObject earthLabel;
   TextMesh earthLabelText;
-  GameObject earthDistLabel;
-  TextMesh earthDistLabelText;
 
   void Start()
   {
@@ -220,8 +218,6 @@ public class GlobalScript : MonoBehaviour
     primaryLabelText = primaryLabel.GetComponent<TextMesh>();
     earthLabel = (GameObject)Instantiate(label_prefab);
     earthLabelText = earthLabel.GetComponent<TextMesh>();
-    earthDistLabel = (GameObject)Instantiate(label_prefab);
-    earthDistLabelText = earthDistLabel.GetComponent<TextMesh>();
   }
 
   void Update()
@@ -257,7 +253,9 @@ public class GlobalScript : MonoBehaviour
 
       switch(zoom_next)
       {
-        case 0: break;
+        case 0:
+          plane.transform.position = new Vector3(0f,-9999999,0f);
+          break;
         case 1:
         case 2:
           plane.transform.position = zoom_target + Vector3.Normalize(zoom_target)*(dome_s);
@@ -283,10 +281,7 @@ public class GlobalScript : MonoBehaviour
         old_cam_position = camera_house.transform.position;
         zoom_cur = zoom_next;
         if(zoom_next == 0)
-        {
           ground.SetActive(true);
-          plane.transform.position = new Vector3(0,0,0);
-        }
       }
 
       for(int i = 0; i < n_zooms; i++)
@@ -351,7 +346,7 @@ public class GlobalScript : MonoBehaviour
     Vector3         lazy_gaze_position;
     Vector3 snapped_lazy_gaze_position;
 
-    if(zoom_cur == 0 && zoom_t < 0.5)
+    if(zoom_cur == 0 && zoom_t < 0.1)
     {
               lazy_gaze_position =         lazy_origin_ray*dome_s;
       snapped_lazy_gaze_position = snapped_lazy_origin_ray*dome_s;
@@ -392,11 +387,10 @@ public class GlobalScript : MonoBehaviour
     {
       earthLabel.transform.position = camera_house.transform.position.normalized * (camera_house.transform.position.magnitude-dome_s);
       earthLabel.transform.rotation = Quaternion.Euler(lazy_origin_euler.x*Mathf.Rad2Deg,270f-lazy_origin_euler.y*Mathf.Rad2Deg,0);
-      earthLabelText.text = "Earth";
-      earthDistLabel.transform.position = earthLabel.transform.position;
-      earthDistLabel.transform.rotation = earthLabel.transform.rotation;
-      earthDistLabelText.text = string.Format("{0} mi",camera_house.transform.position.magnitude*camera_house.transform.position.magnitude);
+      earthLabelText.text = string.Format("Earth\n{0} mi",camera_house.transform.position.magnitude*camera_house.transform.position.magnitude);
     }
+    else
+      earthLabelText.text = "";
 
     Vector2 lazy_origin_inflated_euler = lazy_origin_euler;
     if(zoom_cur != 0) lazy_origin_inflated_euler = zoom_target_inflated_euler[zoom_cur-1]+((lazy_origin_euler-zoom_target_euler[zoom_cur-1])/zoom_target_euler_inflation[zoom_cur]);
