@@ -39,13 +39,16 @@ public class GlobalScript : MonoBehaviour
   int zoom_next;
   float zoom_t;
   GameObject[] zoom_cluster;
+  float[] zoom_resolution;
   float[,] zoom_cluster_zoom;
   float[] zoom_grid_resolution;
+  float[] zoom_grid_display_resolution;
   Vector2[] zoom_target_euler; //yaw/pitch
   Vector2[] zoom_target_inflated_euler; //yaw/pitch (artificially corrected to higher fidelity)
   float[] zoom_target_euler_inflation;
 
   float zoom_grid_resolution_cur;
+  float zoom_grid_display_resolution_cur;
   float grid_alpha;
 
   Collider plane_collider;
@@ -94,18 +97,15 @@ public class GlobalScript : MonoBehaviour
     zoom_cur = 0;
     zoom_next = 0;
     zoom_t = 0;
+
     zoom_cluster = new GameObject[n_zooms];
-    zoom_cluster_zoom = new float[n_zooms,n_zooms];
-    zoom_target_euler = new Vector2[n_zooms];
-    zoom_target_inflated_euler = new Vector2[n_zooms];
-    zoom_target_euler_inflation = new float[n_zooms];
-    zoom_grid_resolution = new float[n_zooms];
     zoom_cluster[0] = GameObject.Find("Zoom0Cluster");
     zoom_cluster[1] = GameObject.Find("Zoom1Cluster");
     zoom_cluster[2] = GameObject.Find("Zoom2Cluster");
     for(int i = 3; i < n_zooms; i++)
       zoom_cluster[i] = new GameObject();
 
+    zoom_cluster_zoom = new float[n_zooms,n_zooms];
     // earth
     zoom_cluster_zoom[0,0] = 1f;         //on earth
     zoom_cluster_zoom[0,1] = 0.00001f;   //on solar system
@@ -127,6 +127,9 @@ public class GlobalScript : MonoBehaviour
     zoom_cluster_zoom[3,2] = 0.01f;
     zoom_cluster_zoom[3,3] = 0.01f;
 
+    zoom_target_euler = new Vector2[n_zooms];
+    zoom_target_inflated_euler = new Vector2[n_zooms];
+    zoom_target_euler_inflation = new float[n_zooms];
     for(int i = 0; i < n_zooms; i++)
     {
       zoom_target_euler[i] = Vector2.zero;
@@ -136,10 +139,18 @@ public class GlobalScript : MonoBehaviour
     zoom_target_euler_inflation[1] = 5f;
     zoom_target_euler_inflation[2] = 10f;
     zoom_target_euler_inflation[3] = 15f;
+
+    zoom_grid_resolution = new float[n_zooms];
     zoom_grid_resolution[0] = 10f;
     zoom_grid_resolution[1] = 5f;
     zoom_grid_resolution[2] = 1f;
     zoom_grid_resolution[3] = 0.5f;
+
+    zoom_grid_display_resolution = new float[n_zooms];
+    zoom_grid_display_resolution[0] = 10f;
+    zoom_grid_display_resolution[1] = 1f;
+    zoom_grid_display_resolution[2] = 0.1f;
+    zoom_grid_display_resolution[3] = 0.01f;
 
     GameObject[] star_groups;
     GameObject star;
@@ -192,6 +203,7 @@ public class GlobalScript : MonoBehaviour
     zoom_target = Vector3.zero;
 
     zoom_grid_resolution_cur = zoom_grid_resolution[zoom_cur];
+    zoom_grid_display_resolution_cur = zoom_grid_display_resolution[zoom_cur];
     grid_alpha = 1f;
 
     plane_collider = plane.GetComponent<Collider>();
@@ -274,6 +286,7 @@ public class GlobalScript : MonoBehaviour
       }
 
       zoom_grid_resolution_cur = Mathf.Lerp(zoom_grid_resolution[zoom_cur],zoom_grid_resolution[zoom_next],zoom_t);
+      zoom_grid_display_resolution_cur = Mathf.Lerp(zoom_grid_display_resolution[zoom_cur],zoom_grid_display_resolution[zoom_next],zoom_t);
 
       camera_house.transform.position = Vector3.Lerp(old_cam_position, zoom_target + new Vector3(0,1,0), zoom_t);
 
@@ -309,7 +322,7 @@ public class GlobalScript : MonoBehaviour
       }
     }
 
-    lazy_origin_ray = Vector3.Normalize(Vector3.Lerp(lazy_origin_ray, origin_ray, 0.01f));
+    lazy_origin_ray = Vector3.Normalize(Vector3.Lerp(lazy_origin_ray, origin_ray, 0.05f));
 
     Vector3 lazy_origin_ray_sqr = lazy_origin_ray;
     lazy_origin_ray_sqr.x *= lazy_origin_ray_sqr.x;
@@ -317,11 +330,10 @@ public class GlobalScript : MonoBehaviour
     lazy_origin_ray_sqr.z *= lazy_origin_ray_sqr.z;
     float lazy_plane_origin_dist = Mathf.Sqrt(lazy_origin_ray_sqr.x+lazy_origin_ray_sqr.z);
 
-    float grid_resolution = zoom_grid_resolution_cur;
     lazy_origin_euler.x = Mathf.Atan2(lazy_origin_ray.y,lazy_plane_origin_dist);
     lazy_origin_euler.y = Mathf.Atan2(lazy_origin_ray.z,lazy_origin_ray.x);
-    snapped_lazy_origin_euler.x = ((Mathf.Floor((lazy_origin_euler.x*Mathf.Rad2Deg)/grid_resolution)*grid_resolution)+grid_resolution/2)*Mathf.Deg2Rad;
-    snapped_lazy_origin_euler.y = ((Mathf.Floor((lazy_origin_euler.y*Mathf.Rad2Deg)/grid_resolution)*grid_resolution)+grid_resolution/2)*Mathf.Deg2Rad;
+    snapped_lazy_origin_euler.x = ((Mathf.Floor((lazy_origin_euler.x*Mathf.Rad2Deg)/zoom_grid_resolution_cur)*zoom_grid_resolution_cur)+zoom_grid_resolution_cur/2)*Mathf.Deg2Rad;
+    snapped_lazy_origin_euler.y = ((Mathf.Floor((lazy_origin_euler.y*Mathf.Rad2Deg)/zoom_grid_resolution_cur)*zoom_grid_resolution_cur)+zoom_grid_resolution_cur/2)*Mathf.Deg2Rad;
 
     snapped_lazy_origin_ray = Quaternion.Euler(-Mathf.Rad2Deg*snapped_lazy_origin_euler.x, -Mathf.Rad2Deg*snapped_lazy_origin_euler.y+90, 0) * look_ahead;
 
@@ -380,15 +392,27 @@ public class GlobalScript : MonoBehaviour
     if(zoom_cur != 0) lazy_origin_inflated_euler = zoom_target_inflated_euler[zoom_cur-1]+((lazy_origin_euler-zoom_target_euler[zoom_cur-1])/zoom_target_euler_inflation[zoom_cur]);
     lazy_origin_inflated_euler *= Mathf.Rad2Deg;
 
-    primaryLabelText.text = string.Format("{0}°,{1}°", lazy_origin_inflated_euler.y.ToString("F2"), lazy_origin_inflated_euler.x.ToString("F2"));
+    float lookx = lazy_origin_inflated_euler.x;
+    float looky = -lazy_origin_inflated_euler.y;
+    float looky_min = Mathf.Floor(looky/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
+    float looky_max = Mathf.Ceil(looky/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
+    float lookx_min = Mathf.Floor(lookx/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
+    float lookx_max = Mathf.Ceil(lookx/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
+    if(zoom_cur < 2)
+      primaryLabelText.text = string.Format("{0}° - {1}°,\n{2}° - {3}°", looky_min.ToString("F0"), looky_max.ToString("F0"), lookx_min.ToString("F0"), lookx_max.ToString("F0"));
+    else if(zoom_cur < 3)
+      primaryLabelText.text = string.Format("{0}°°,\n{1}°", looky.ToString("F2"), lookx.ToString("F2"));
+    else
+      primaryLabelText.text = "";
 
     //shader inputs
     grid_material.SetVector(camera_position_id,camera.transform.position);
     grid_material.SetVector(lazy_origin_ray_id,lazy_origin_ray);
     grid_material.SetFloat(snapped_lazy_origin_pitch_id,snapped_lazy_origin_euler.x);
     grid_material.SetFloat(snapped_lazy_origin_yaw_id,snapped_lazy_origin_euler.y);
-    grid_material.SetFloat(grid_resolution_id,grid_resolution);
+    grid_material.SetFloat(grid_resolution_id,zoom_grid_resolution_cur);
     grid_material.SetFloat(grid_alpha_id,grid_alpha);
   }
 
 }
+
