@@ -99,8 +99,25 @@
 
           shade = abs(snapped_lazy_origin_yaw-frag_origin_yaw)+abs(snapped_lazy_origin_pitch-frag_origin_pitch);
           shade = clamp(shade,0,1);
-          //10,5,5.5,11,grid_resolution //from_min,from_max,to_min,to_max,val
-          float v = ((grid_resolution-10)/(5-10))*(11-5.5)+5.5;
+
+          float from_min;
+          float from_max;
+          float to_min;
+          float to_max;
+          float v;
+
+          from_min = 10;
+          from_max = 5;
+          to_min = 5.5;
+          to_max = 31;
+          v = grid_resolution;
+          v = ((v-from_min)/(from_max-from_min))*(to_max-to_min)+to_min;
+
+               if(grid_resolution > 7.5)  v = 5.5; //10
+          else if(grid_resolution > 2.5)  v = 11;  //5
+          else if(grid_resolution > 0.75) v = 51;  //1
+          else v = 10000;                          //0.5
+
           shade = min(1,shade*v);
           shade *= shade;
           shade *= shade;
@@ -116,10 +133,20 @@
           float frag_lazy_dist = sqrt(x2+y2+z2);
 
           band = clamp(frag_origin_pitch_band+frag_origin_yaw_band,0,1);
-          //10,5,5,10,grid_resolution //from_min,from_max,to_min,to_max,val
-          v = ((grid_resolution-10)/(5-10))*(10-5)+5;
-          band *= (window_r-frag_lazy_dist*v)/window_r;
 
+          from_min = 10;
+          from_max = 5;
+          to_min = 5;
+          to_max = 20;
+          v = grid_resolution;
+          v = ((v-from_min)/(from_max-from_min))*(to_max-to_min)+to_min;
+
+               if(grid_resolution > 7.5)  v = 5;  //10
+          else if(grid_resolution > 2.5)  v = 11; //5
+          else if(grid_resolution > 0.75) v = 20; //1
+          else v = 50;                             //0.5
+
+          band *= (window_r-frag_lazy_dist*v)/window_r;
           color.rgba = float4(shade,1,1,band*grid_alpha);
           //color.rgba = float4(shade,0,band,1);
 
