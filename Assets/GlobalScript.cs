@@ -137,26 +137,26 @@ public class GlobalScript : MonoBehaviour
     }
     zoom_target_euler_inflation[0] = 1f;
     zoom_target_euler_inflation[1] = 5f;
-    zoom_target_euler_inflation[2] = 10f;
+    zoom_target_euler_inflation[2] = 5f;
     zoom_target_euler_inflation[3] = 15f;
 
     zoom_grid_resolution = new float[n_zooms];
     zoom_grid_resolution[0] = 10f;
     zoom_grid_resolution[1] = 5f;
-    zoom_grid_resolution[2] = 1f;
-    zoom_grid_resolution[3] = 0.5f;
+    zoom_grid_resolution[2] = 0.5f;
+    zoom_grid_resolution[3] = 0.2f;
 
     zoom_grid_display_resolution = new float[n_zooms];
     zoom_grid_display_resolution[0] = 10f;
     zoom_grid_display_resolution[1] = 1f;
-    zoom_grid_display_resolution[2] = 0.1f;
-    zoom_grid_display_resolution[3] = 0.01f;
+    zoom_grid_display_resolution[2] = 1f;
+    zoom_grid_display_resolution[3] = 0.2f;
 
     GameObject[] star_groups;
     GameObject star;
     Vector3 starpos;
 
-    int n_stars = 50000;
+    int n_stars = 5000;
     int n_groups = (int)Mathf.Ceil(n_stars/1000);
     int n_stars_in_group;
     star_groups = new GameObject[n_groups];
@@ -253,13 +253,18 @@ public class GlobalScript : MonoBehaviour
       }
       if(zoom_next == 1) ground.SetActive(false);
 
-      if(zoom_next != 0)
+      switch(zoom_next)
       {
-        plane.transform.position = zoom_target + Vector3.Normalize(zoom_target)*(dome_s*zoom_next);
-        plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
+        case 0: break;
+        case 1:
+        case 2:
+          plane.transform.position = zoom_target + Vector3.Normalize(zoom_target)*(dome_s);
+          break;
+        case 3:
+          plane.transform.position = zoom_target + Vector3.Normalize(zoom_target)*(dome_s*5);
+          break;
       }
-      //float s = 2*(zoom_target.magnitude+dome_s);
-      //dome.transform.localScale = new Vector3(s,s,s);
+      plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
     }
 
     if(zoom_t > 0)
@@ -305,7 +310,7 @@ public class GlobalScript : MonoBehaviour
 
     camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
 
-    Vector3 cast_vision = camera.transform.position + (camera.transform.rotation * look_ahead * (dome_s+1));
+    Vector3 cast_vision = camera.transform.position + (camera.transform.rotation * look_ahead * (dome_s+zoom_cur+1));
     if(zoom_cur == 0 && zoom_t < 0.5)
     {
       origin_pt = cast_vision;

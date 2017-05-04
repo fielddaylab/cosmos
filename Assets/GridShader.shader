@@ -115,8 +115,8 @@
 
                if(grid_resolution > 7.5)  v = 5.5; //10
           else if(grid_resolution > 2.5)  v = 11;  //5
-          else if(grid_resolution > 0.75) v = 51;  //1
-          else v = 10000;                          //0.5
+          else if(grid_resolution > 0.45) v = 111; //0.5
+          else v = 1000000;                        //0.5
 
           shade = min(1,shade*v);
           shade *= shade;
@@ -143,8 +143,8 @@
 
                if(grid_resolution > 7.5)  v = 5;  //10
           else if(grid_resolution > 2.5)  v = 11; //5
-          else if(grid_resolution > 0.75) v = 20; //1
-          else v = 50;                             //0.5
+          else if(grid_resolution > 0.45) v = 51; //1
+          else v = 50;                            //0.5
 
           band *= (window_r-frag_lazy_dist*v)/window_r;
           color.rgba = float4(shade,1,1,band*grid_alpha);
