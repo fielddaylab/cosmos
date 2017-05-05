@@ -57,6 +57,9 @@ public class GlobalScript : MonoBehaviour
   float grid_alpha;
   float ray_alpha;
 
+  float goal_yaw;
+  float goal_pitch;
+
   Collider plane_collider;
 
   //labels
@@ -216,6 +219,9 @@ public class GlobalScript : MonoBehaviour
     grid_alpha = 1f;
     ray_alpha = 0f;
 
+    goal_yaw = Random.Range(-180f,180f);
+    goal_pitch = Random.Range(20,80f);
+
     plane_collider = plane.GetComponent<Collider>();
 
     pointLabel = (GameObject)Instantiate(label_prefab);
@@ -279,12 +285,12 @@ public class GlobalScript : MonoBehaviour
       plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
 
       if(zoom_next == 3)
-        blackhole.transform.position = plane.transform.position;//zoom_target + Vector3.Normalize(zoom_target)*(dome_s*5);
+        blackhole.transform.position = plane.transform.position*1.5f;//zoom_target + Vector3.Normalize(zoom_target)*(dome_s*5);
     }
 
     if(zoom_t > 0)
     {
-      zoom_t += 0.05f;
+      zoom_t += 0.01f;
 
       if(zoom_t > 1)
       {
@@ -294,6 +300,11 @@ public class GlobalScript : MonoBehaviour
         zoom_cur = zoom_next;
         if(zoom_next == 0)
           ground.SetActive(true);
+      }
+      else
+      {
+        if(zoom_next == 3)
+          blackhole.transform.position = Vector3.Lerp(plane.transform.position*1.5f,plane.transform.position,zoom_t);
       }
 
       for(int i = 0; i < n_zooms; i++)
@@ -321,6 +332,8 @@ public class GlobalScript : MonoBehaviour
         float s = zoom_cluster_zoom[i,zoom_cur];
         zoom_cluster[i].transform.localScale = new Vector3(s,s,s);
       }
+      if(zoom_cur == 3)
+          blackhole.transform.position = plane.transform.position;
     }
 
     camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
@@ -403,7 +416,7 @@ public class GlobalScript : MonoBehaviour
 
     hudLabel.transform.position = cast_vision;
     hudLabel.transform.rotation = camera.transform.rotation;
-    hudLabelText.text = string.Format("\n\n\n\nHud {0}",123.456);
+    hudLabelText.text = string.Format("\n\n\n\n\n\nHud {0}° {1}°",goal_yaw,goal_pitch);
 
     if(zoom_cur != 0)
     {
