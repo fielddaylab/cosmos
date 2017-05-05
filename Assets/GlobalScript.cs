@@ -18,10 +18,12 @@ public class GlobalScript : MonoBehaviour
   int snapped_lazy_origin_yaw_id;
   int grid_resolution_id;
   int grid_alpha_id;
+  int ray_alpha_id;
   Vector3 zoom_target;
 
   //unity-set
   public Material grid_material;
+  public Material ray_material;
   public GameObject label_prefab;
   public GameObject star_prefab;
 
@@ -52,6 +54,7 @@ public class GlobalScript : MonoBehaviour
   float zoom_grid_resolution_cur;
   float zoom_grid_display_resolution_cur;
   float grid_alpha;
+  float ray_alpha;
 
   Collider plane_collider;
 
@@ -82,6 +85,7 @@ public class GlobalScript : MonoBehaviour
     snapped_lazy_origin_yaw_id = Shader.PropertyToID("snapped_lazy_origin_yaw");
     grid_resolution_id = Shader.PropertyToID("grid_resolution");
     grid_alpha_id = Shader.PropertyToID("grid_alpha");
+    ray_alpha_id = Shader.PropertyToID("ray_alpha");
 
     //objects
     camera_house = GameObject.Find("CameraHouse");
@@ -207,6 +211,7 @@ public class GlobalScript : MonoBehaviour
     zoom_grid_resolution_cur = zoom_grid_resolution[zoom_cur];
     zoom_grid_display_resolution_cur = zoom_grid_display_resolution[zoom_cur];
     grid_alpha = 1f;
+    ray_alpha = 0f;
 
     plane_collider = plane.GetComponent<Collider>();
 
@@ -291,6 +296,9 @@ public class GlobalScript : MonoBehaviour
         float s = Mathf.Lerp(zoom_cluster_zoom[i,zoom_cur],zoom_cluster_zoom[i,zoom_next],zoom_t);
         zoom_cluster[i].transform.localScale = new Vector3(s,s,s);
       }
+
+      if(zoom_cur == 0 && zoom_next >  0) ray_alpha =    zoom_t;
+      if(zoom_cur >  0 && zoom_next == 0) ray_alpha = 1f-zoom_t;
 
       zoom_grid_resolution_cur = Mathf.Lerp(zoom_grid_resolution[zoom_cur],zoom_grid_resolution[zoom_next],zoom_t);
       zoom_grid_display_resolution_cur = Mathf.Lerp(zoom_grid_display_resolution[zoom_cur],zoom_grid_display_resolution[zoom_next],zoom_t);
@@ -378,7 +386,7 @@ public class GlobalScript : MonoBehaviour
     }
 
     eyeray.GetComponent<LineRenderer>().SetPosition(1,lazy_gaze_position);
-    eyeray.GetComponent<LineRenderer>().SetPosition(2,lazy_gaze_position*2);
+    eyeray.GetComponent<LineRenderer>().SetPosition(2,lazy_gaze_position*100);
 
         pointLabel.transform.position =         lazy_gaze_position;
     snapPointLabel.transform.position = snapped_lazy_gaze_position;
@@ -421,6 +429,9 @@ public class GlobalScript : MonoBehaviour
     grid_material.SetFloat(snapped_lazy_origin_yaw_id,snapped_lazy_origin_euler.y);
     grid_material.SetFloat(grid_resolution_id,zoom_grid_resolution_cur);
     grid_material.SetFloat(grid_alpha_id,grid_alpha);
+
+    ray_material.SetVector(camera_position_id,camera.transform.position);
+    ray_material.SetFloat(ray_alpha_id,ray_alpha);
   }
 
 }
