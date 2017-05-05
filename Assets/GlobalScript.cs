@@ -11,6 +11,7 @@ public class GlobalScript : MonoBehaviour
   Vector2 lazy_origin_euler;
   Vector3 snapped_lazy_origin_ray;
   Vector2 snapped_lazy_origin_euler;
+  Vector3 cast_vision;
 
   int camera_position_id;
   int lazy_origin_ray_id;
@@ -67,6 +68,8 @@ public class GlobalScript : MonoBehaviour
   TextMesh primaryLabelText;
   GameObject earthLabel;
   TextMesh earthLabelText;
+  GameObject hudLabel;
+  TextMesh hudLabelText;
 
   void Start()
   {
@@ -225,6 +228,8 @@ public class GlobalScript : MonoBehaviour
     primaryLabelText = primaryLabel.GetComponent<TextMesh>();
     earthLabel = (GameObject)Instantiate(label_prefab);
     earthLabelText = earthLabel.GetComponent<TextMesh>();
+    hudLabel = (GameObject)Instantiate(label_prefab);
+    hudLabelText = hudLabel.GetComponent<TextMesh>();
   }
 
   void Update()
@@ -320,7 +325,7 @@ public class GlobalScript : MonoBehaviour
 
     camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
 
-    Vector3 cast_vision = camera.transform.position + (camera.transform.rotation * look_ahead * (dome_s+zoom_cur+1));
+    cast_vision = camera.transform.position + (camera.transform.rotation * look_ahead * (dome_s+zoom_cur+1));
     if(zoom_cur == 0 && zoom_t < 0.5)
     {
       origin_pt = cast_vision;
@@ -396,11 +401,20 @@ public class GlobalScript : MonoBehaviour
     primaryLabel.transform.position = pointLabel.transform.position+new Vector3(0f,0.5f,0f);
     primaryLabel.transform.rotation = pointLabel.transform.rotation;
 
+    hudLabel.transform.position = cast_vision;
+    hudLabel.transform.rotation = camera.transform.rotation;
+    hudLabelText.text = string.Format("\n\n\n\nHud {0}",123.456);
+
     if(zoom_cur != 0)
     {
       earthLabel.transform.position = camera_house.transform.position.normalized * (camera_house.transform.position.magnitude-dome_s);
       earthLabel.transform.rotation = Quaternion.Euler(lazy_origin_euler.x*Mathf.Rad2Deg,270f-lazy_origin_euler.y*Mathf.Rad2Deg,0);
-      earthLabelText.text = string.Format("Earth\n{0} mi",camera_house.transform.position.magnitude*camera_house.transform.position.magnitude);
+      if(zoom_cur == 1)
+        earthLabelText.text = string.Format("Solar System\n{0} mi",camera_house.transform.position.magnitude*camera_house.transform.position.magnitude);
+      else if(zoom_cur == 2)
+        earthLabelText.text = string.Format("Milky Way\n{0} mi",camera_house.transform.position.magnitude*camera_house.transform.position.magnitude);
+      else if(zoom_cur == 3)
+        earthLabelText.text = string.Format("Home\n{0} mi",camera_house.transform.position.magnitude*camera_house.transform.position.magnitude);
     }
     else
       earthLabelText.text = "";
