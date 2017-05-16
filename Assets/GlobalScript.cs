@@ -164,30 +164,30 @@ public class GlobalScript : MonoBehaviour
     zoom_cluster_zoom_to = new float[n_zooms];
     zoom_cluster_zoom = new float[n_zooms,n_zooms];
     // earth
-    zoom_cluster_zoom[0,0] = 1000f;         //on earth
-    zoom_cluster_zoom[0,1] = 0.001f;   //on solar system
-    zoom_cluster_zoom[0,2] = 0.000001f; //on galaxy
-    zoom_cluster_zoom[0,3] = 0.000000001f; //on beyond
+    zoom_cluster_zoom[0,0] = 1000f;   //on earth
+    zoom_cluster_zoom[0,1] = 0.1f;   //on solar system
+    zoom_cluster_zoom[0,2] = 0.01f; //on galaxy
+    zoom_cluster_zoom[0,3] = 0.001f; //on beyond
     zoom_cluster_zoom_from[0] = zoom_cluster_zoom[0,0];
     zoom_cluster_zoom_to[0]   = zoom_cluster_zoom[0,0];
     // solar system
-    zoom_cluster_zoom[1,0] = 10f;
+    zoom_cluster_zoom[1,0] = 100f;
     zoom_cluster_zoom[1,1] = 1f;
     zoom_cluster_zoom[1,2] = 0.1f;
     zoom_cluster_zoom[1,3] = 0.01f;
     zoom_cluster_zoom_from[1] = zoom_cluster_zoom[1,0];
     zoom_cluster_zoom_to[1]   = zoom_cluster_zoom[1,0];
     // galaxy
-    zoom_cluster_zoom[2,0] = 1000f;
-    zoom_cluster_zoom[2,1] = 100f;
+    zoom_cluster_zoom[2,0] = 10000f;
+    zoom_cluster_zoom[2,1] = 1000f;
     zoom_cluster_zoom[2,2] = 10f;
     zoom_cluster_zoom[2,3] = 1f;
     zoom_cluster_zoom_from[2] = zoom_cluster_zoom[2,0];
     zoom_cluster_zoom_to[2]   = zoom_cluster_zoom[2,0];
     // beyond
-    zoom_cluster_zoom[3,0] = 1000f;
-    zoom_cluster_zoom[3,1] = 100f;
-    zoom_cluster_zoom[3,2] = 10f;
+    zoom_cluster_zoom[3,0] = 10000f;
+    zoom_cluster_zoom[3,1] = 1000f;
+    zoom_cluster_zoom[3,2] = 100f;
     zoom_cluster_zoom[3,3] = 1f;
     zoom_cluster_zoom_from[3] = zoom_cluster_zoom[3,0];
     zoom_cluster_zoom_to[3]   = zoom_cluster_zoom[3,0];
@@ -228,7 +228,7 @@ public class GlobalScript : MonoBehaviour
     GameObject star;
     Vector3 starpos;
 
-    int n_stars = 500;
+    int n_stars = 50000;
     int n_groups = (int)Mathf.Ceil(n_stars/1000);
     int n_stars_in_group;
     star_groups = new GameObject[n_groups];
@@ -250,11 +250,12 @@ public class GlobalScript : MonoBehaviour
           good_star = (starpos.sqrMagnitude < Random.Range(0f,1f));
         }
         starpos = Vector3.Normalize(starpos);
-        starpos *= Random.Range(200f,820f);
+        float r = Random.Range(0f,1f);
+        starpos *= Mathf.Lerp(1f,5f,r*r);
 
         star.transform.position = starpos;
         star.transform.rotation = Quaternion.Euler(Random.Range(0f,360f),Random.Range(0f,360f),Random.Range(0f,360f));
-        star.transform.localScale = new Vector3(0.5f,0.5f,0.5f);
+        star.transform.localScale = new Vector3(0.005f,0.005f,0.005f);
 
         combine[j].mesh = star.transform.GetComponent<MeshFilter>().mesh;
         combine[j].transform = star.transform.localToWorldMatrix;
@@ -391,7 +392,8 @@ public class GlobalScript : MonoBehaviour
       camera_house.transform.position = Vector3.Lerp(player_position_from, player_position_to, zoom_t) + player_height;
 
       grid_alpha = ((zoom_t-0.5f)*2f);
-      grid_alpha = grid_alpha*grid_alpha*grid_alpha*grid_alpha*grid_alpha;
+      grid_alpha = grid_alpha*grid_alpha*grid_alpha*grid_alpha;
+      grid_alpha *= grid_alpha;
     }
     else
     {
