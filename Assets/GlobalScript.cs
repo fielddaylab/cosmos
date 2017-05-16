@@ -35,8 +35,12 @@ public class GlobalScript : MonoBehaviour
   GameObject dome;
   GameObject plane;
   GameObject ground;
-  GameObject blackhole;
   GameObject eyeray;
+
+  GameObject blackhole;
+  GameObject galaxy;
+  GameObject solarsystem;
+  GameObject earth;
 
   //zoom
   int n_zooms;
@@ -100,9 +104,25 @@ public class GlobalScript : MonoBehaviour
     dome   = GameObject.Find("DomeGrid");
     plane  = GameObject.Find("PlaneGrid");
     ground = GameObject.Find("Ground");
-    //ground.GetComponent<Renderer>().material.SetColor("_Color",Color.white);
-    blackhole = GameObject.Find("BlackHole");
     eyeray = GameObject.Find("Ray");
+
+    blackhole   = GameObject.Find("BlackHole");
+    galaxy      = GameObject.Find("Galaxy");
+    solarsystem = GameObject.Find("SolarSystem");
+    earth       = GameObject.Find("Earth");
+
+    blackhole.GetComponent<Renderer>().material.SetColor(  "_Color",Color.blue);
+    galaxy.GetComponent<Renderer>().material.SetColor(     "_Color",Color.red);
+    solarsystem.GetComponent<Renderer>().material.SetColor("_Color",Color.yellow);
+    earth.GetComponent<Renderer>().material.SetColor(      "_Color",Color.green);
+    blackhole.GetComponent<Renderer>().material.SetColor(  "_Albedo",Color.blue);
+    galaxy.GetComponent<Renderer>().material.SetColor(     "_Albedo",Color.red);
+    solarsystem.GetComponent<Renderer>().material.SetColor("_Albedo",Color.yellow);
+    earth.GetComponent<Renderer>().material.SetColor(      "_Albedo",Color.green);
+    blackhole.GetComponent<Renderer>().material.SetColor(  "_EmissionColor",Color.blue);
+    galaxy.GetComponent<Renderer>().material.SetColor(     "_EmissionColor",Color.red);
+    solarsystem.GetComponent<Renderer>().material.SetColor("_EmissionColor",Color.yellow);
+    earth.GetComponent<Renderer>().material.SetColor(      "_EmissionColor",Color.green);
 
     //zoom
     n_zooms = 4;
@@ -124,7 +144,7 @@ public class GlobalScript : MonoBehaviour
     zoom_cluster_zoom[0,2] = 0.0000001f; //on galaxy
     zoom_cluster_zoom[0,3] = 0.0000001f; //on beyond
     // solar system
-    zoom_cluster_zoom[1,0] = 1f;
+    zoom_cluster_zoom[1,0] = 10000f;
     zoom_cluster_zoom[1,1] = 1f;
     zoom_cluster_zoom[1,2] = 1f;
     zoom_cluster_zoom[1,3] = 1f;
