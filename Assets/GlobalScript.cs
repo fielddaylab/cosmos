@@ -20,7 +20,6 @@ public class GlobalScript : MonoBehaviour
   int grid_resolution_id;
   int grid_alpha_id;
   int ray_alpha_id;
-  Vector3 zoom_target;
 
   //unity-set
   public Material grid_material;
@@ -29,9 +28,11 @@ public class GlobalScript : MonoBehaviour
   public GameObject star_prefab;
 
   //objects
+  GameObject[] zoom_cluster;
+
   GameObject camera_house;
   new GameObject camera;
-  Vector3 old_cam_position;
+
   GameObject dome;
   GameObject plane;
   GameObject ground;
@@ -42,22 +43,40 @@ public class GlobalScript : MonoBehaviour
   GameObject solarsystem;
   GameObject earth;
 
+  Vector3 player_height;
+
   //zoom
   int n_zooms;
   int zoom_cur;
   int zoom_next;
+
+  //lerp vals
   float zoom_t;
-  GameObject[] zoom_cluster;
-  float[] zoom_resolution;
+  Vector3 player_position_from;
+  Vector3 player_position_to;
+  float[] zoom_cluster_zoom_from;
+  float[] zoom_cluster_zoom_to;
+  Vector3 blackhole_pos_from;
+  Vector3 blackhole_pos_to;
+  float zoom_grid_resolution_from;
+  float zoom_grid_resolution_to;
+  float zoom_grid_display_resolution_from;
+  float zoom_grid_display_resolution_to;
+
+  //lerp data
   float[,] zoom_cluster_zoom;
   float[] zoom_grid_resolution;
   float[] zoom_grid_display_resolution;
+
+  //lerp result
+  float zoom_grid_resolution_cur;
+  float zoom_grid_display_resolution_cur;
+
+  //zoom state
   Vector2[] zoom_target_euler; //yaw/pitch
   Vector2[] zoom_target_inflated_euler; //yaw/pitch (artificially corrected to higher fidelity)
   float[] zoom_target_euler_inflation;
 
-  float zoom_grid_resolution_cur;
-  float zoom_grid_display_resolution_cur;
   float grid_alpha;
   float ray_alpha;
 
@@ -81,6 +100,7 @@ public class GlobalScript : MonoBehaviour
   void Start()
   {
     look_ahead  = new Vector3(0,0,1);
+    player_height = new Vector3(0,1,0);
 
     origin_pt = look_ahead;
     origin_ray = look_ahead;
@@ -100,7 +120,6 @@ public class GlobalScript : MonoBehaviour
     //objects
     camera_house = GameObject.Find("CameraHouse");
     camera       = GameObject.Find("Main Camera");
-    old_cam_position = camera_house.transform.position;
     dome   = GameObject.Find("DomeGrid");
     plane  = GameObject.Find("PlaneGrid");
     ground = GameObject.Find("Ground");
@@ -137,27 +156,57 @@ public class GlobalScript : MonoBehaviour
     for(int i = 3; i < n_zooms; i++)
       zoom_cluster[i] = new GameObject();
 
+
+    player_position_from = Vector3.zero;
+    player_position_to   = Vector3.zero;
+
+    zoom_cluster_zoom_from = new float[n_zooms];
+    zoom_cluster_zoom_to = new float[n_zooms];
     zoom_cluster_zoom = new float[n_zooms,n_zooms];
     // earth
-    zoom_cluster_zoom[0,0] = 1f;         //on earth
-    zoom_cluster_zoom[0,1] = 0.00001f;   //on solar system
-    zoom_cluster_zoom[0,2] = 0.0000001f; //on galaxy
-    zoom_cluster_zoom[0,3] = 0.0000001f; //on beyond
+    zoom_cluster_zoom[0,0] = 1000f;         //on earth
+    zoom_cluster_zoom[0,1] = 0.001f;   //on solar system
+    zoom_cluster_zoom[0,2] = 0.000001f; //on galaxy
+    zoom_cluster_zoom[0,3] = 0.000000001f; //on beyond
+    zoom_cluster_zoom_from[0] = zoom_cluster_zoom[0,0];
+    zoom_cluster_zoom_to[0]   = zoom_cluster_zoom[0,0];
     // solar system
-    zoom_cluster_zoom[1,0] = 10000f;
+    zoom_cluster_zoom[1,0] = 10f;
     zoom_cluster_zoom[1,1] = 1f;
-    zoom_cluster_zoom[1,2] = 1f;
-    zoom_cluster_zoom[1,3] = 1f;
+    zoom_cluster_zoom[1,2] = 0.1f;
+    zoom_cluster_zoom[1,3] = 0.01f;
+    zoom_cluster_zoom_from[1] = zoom_cluster_zoom[1,0];
+    zoom_cluster_zoom_to[1]   = zoom_cluster_zoom[1,0];
     // galaxy
-    zoom_cluster_zoom[2,0] = 1f;
-    zoom_cluster_zoom[2,1] = 1f;
-    zoom_cluster_zoom[2,2] = 0.01f;
-    zoom_cluster_zoom[2,3] = 0.01f;
+    zoom_cluster_zoom[2,0] = 1000f;
+    zoom_cluster_zoom[2,1] = 100f;
+    zoom_cluster_zoom[2,2] = 10f;
+    zoom_cluster_zoom[2,3] = 1f;
+    zoom_cluster_zoom_from[2] = zoom_cluster_zoom[2,0];
+    zoom_cluster_zoom_to[2]   = zoom_cluster_zoom[2,0];
     // beyond
-    zoom_cluster_zoom[3,0] = 1f;
-    zoom_cluster_zoom[3,1] = 1f;
-    zoom_cluster_zoom[3,2] = 0.01f;
-    zoom_cluster_zoom[3,3] = 0.01f;
+    zoom_cluster_zoom[3,0] = 1000f;
+    zoom_cluster_zoom[3,1] = 100f;
+    zoom_cluster_zoom[3,2] = 10f;
+    zoom_cluster_zoom[3,3] = 1f;
+    zoom_cluster_zoom_from[3] = zoom_cluster_zoom[3,0];
+    zoom_cluster_zoom_to[3]   = zoom_cluster_zoom[3,0];
+
+    zoom_grid_resolution = new float[n_zooms];
+    zoom_grid_resolution[0] = 10f;
+    zoom_grid_resolution[1] = 5f;
+    zoom_grid_resolution[2] = 0.5f;
+    zoom_grid_resolution[3] = 0.2f;
+    zoom_grid_resolution_from = zoom_grid_resolution[0];
+    zoom_grid_resolution_to   = zoom_grid_resolution[0];
+
+    zoom_grid_display_resolution = new float[n_zooms];
+    zoom_grid_display_resolution[0] = 10f;
+    zoom_grid_display_resolution[1] = 1f;
+    zoom_grid_display_resolution[2] = 1f;
+    zoom_grid_display_resolution[3] = 0.2f;
+    zoom_grid_display_resolution_from = zoom_grid_display_resolution[0];
+    zoom_grid_display_resolution_to   = zoom_grid_display_resolution[0];
 
     zoom_target_euler = new Vector2[n_zooms];
     zoom_target_inflated_euler = new Vector2[n_zooms];
@@ -172,23 +221,14 @@ public class GlobalScript : MonoBehaviour
     zoom_target_euler_inflation[2] = 5f;
     zoom_target_euler_inflation[3] = 15f;
 
-    zoom_grid_resolution = new float[n_zooms];
-    zoom_grid_resolution[0] = 10f;
-    zoom_grid_resolution[1] = 5f;
-    zoom_grid_resolution[2] = 0.5f;
-    zoom_grid_resolution[3] = 0.2f;
-
-    zoom_grid_display_resolution = new float[n_zooms];
-    zoom_grid_display_resolution[0] = 10f;
-    zoom_grid_display_resolution[1] = 1f;
-    zoom_grid_display_resolution[2] = 1f;
-    zoom_grid_display_resolution[3] = 0.2f;
+    blackhole_pos_from = new Vector3(99999,99999,9999);
+    blackhole_pos_to   = new Vector3(99999,99999,9999);
 
     GameObject[] star_groups;
     GameObject star;
     Vector3 starpos;
 
-    int n_stars = 50000;
+    int n_stars = 500;
     int n_groups = (int)Mathf.Ceil(n_stars/1000);
     int n_stars_in_group;
     star_groups = new GameObject[n_groups];
@@ -230,9 +270,7 @@ public class GlobalScript : MonoBehaviour
 
       n_stars -= n_stars_in_group;
     }
-
-
-    zoom_target = Vector3.zero;
+    Destroy(star,0f);
 
     zoom_grid_resolution_cur = zoom_grid_resolution[zoom_cur];
     zoom_grid_display_resolution_cur = zoom_grid_display_resolution[zoom_cur];
@@ -265,47 +303,60 @@ public class GlobalScript : MonoBehaviour
     if(zoom_t == 0 && Input.GetMouseButtonDown(0))
     {
       zoom_t = 0.01f;
+
+      //find zoom next
       Vector3 view_dir = camera.transform.rotation * look_ahead;
       if(Vector3.Dot(view_dir,camera_house.transform.position.normalized) < 0) zoom_next = 0;
       else zoom_next = (zoom_next+1)%n_zooms;
+
+      //find player_position
+      player_position_from = camera_house.transform.position-player_height;
       if(zoom_next == 0)
       {
-        //zoom_target_euler[zoom_cur] = new Vector2(0,0); //don't change
-        zoom_target = new Vector3(0,0,0);
+        player_position_to = new Vector3(0,0,0);
       }
       else
       {
         zoom_target_euler[zoom_cur] = snapped_lazy_origin_euler;
-        zoom_target = Quaternion.Euler(-Mathf.Rad2Deg*zoom_target_euler[zoom_cur].x, -Mathf.Rad2Deg*zoom_target_euler[zoom_cur].y+90, 0) * look_ahead * Mathf.Pow(10,zoom_next);
+        player_position_to = Quaternion.Euler(-Mathf.Rad2Deg*zoom_target_euler[zoom_cur].x, -Mathf.Rad2Deg*zoom_target_euler[zoom_cur].y+90, 0) * look_ahead * Mathf.Pow(10,zoom_next);
 
-        if(zoom_cur == 0)
-        {
-          zoom_target_inflated_euler[zoom_cur] = zoom_target_euler[zoom_cur];
-        }
-        else
-        {
-          zoom_target_inflated_euler[zoom_cur] = zoom_target_inflated_euler[zoom_cur-1]+((zoom_target_euler[zoom_cur]-zoom_target_euler[zoom_cur-1])/zoom_target_euler_inflation[zoom_cur]);
-        }
+        if(zoom_cur == 0) zoom_target_inflated_euler[zoom_cur] = zoom_target_euler[zoom_cur];
+        else zoom_target_inflated_euler[zoom_cur] = zoom_target_inflated_euler[zoom_cur-1]+((zoom_target_euler[zoom_cur]-zoom_target_euler[zoom_cur-1])/zoom_target_euler_inflation[zoom_cur]);
       }
-      if(zoom_next == 1) ground.SetActive(false);
 
+      //set lerp positions
+      for(int i = 0; i < n_zooms; i++)
+      {
+        zoom_cluster_zoom_from[i] = zoom_cluster_zoom[i,zoom_cur];
+        zoom_cluster_zoom_to[i]   = zoom_cluster_zoom[i,zoom_next];
+      }
+      zoom_grid_resolution_from = zoom_grid_resolution[zoom_cur];
+      zoom_grid_resolution_to   = zoom_grid_resolution[zoom_next];
+      zoom_grid_display_resolution_from = zoom_grid_display_resolution[zoom_cur];
+      zoom_grid_display_resolution_to   = zoom_grid_display_resolution[zoom_next];
+
+      //do special transforms
       switch(zoom_next)
       {
         case 0:
           plane.transform.position = new Vector3(0f,-9999999,0f);
+          blackhole_pos_from = blackhole.transform.position;
+          blackhole_pos_to   = blackhole_pos_from*10f;
           break;
         case 1:
+          ground.SetActive(false);
+          plane.transform.position = player_position_to + Vector3.Normalize(player_position_to)*(dome_s);
+          break;
         case 2:
-          plane.transform.position = zoom_target + Vector3.Normalize(zoom_target)*(dome_s);
+          plane.transform.position = player_position_to + Vector3.Normalize(player_position_to)*(dome_s);
           break;
         case 3:
-          plane.transform.position = zoom_target + Vector3.Normalize(zoom_target)*(dome_s*5);
+          plane.transform.position = player_position_to + Vector3.Normalize(player_position_to)*(dome_s*5);
+          blackhole_pos_to   = plane.transform.position;
+          blackhole_pos_from = blackhole_pos_to*10f;
           break;
       }
       plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
-
-      if(zoom_next == 3)
-        blackhole.transform.position = plane.transform.position*1.5f;//zoom_target + Vector3.Normalize(zoom_target)*(dome_s*5);
     }
 
     if(zoom_t > 0)
@@ -315,45 +366,52 @@ public class GlobalScript : MonoBehaviour
       if(zoom_t > 1)
       {
         zoom_t = 0;
-        camera_house.transform.position = zoom_target + new Vector3(0,1,0);
-        old_cam_position = camera_house.transform.position;
+        camera_house.transform.position = player_position_to + player_height;
         zoom_cur = zoom_next;
         if(zoom_next == 0)
           ground.SetActive(true);
       }
-      else
-      {
-        if(zoom_next == 3)
-          blackhole.transform.position = Vector3.Lerp(plane.transform.position*1.5f,plane.transform.position,zoom_t);
-      }
-
+    }
+    if(zoom_t > 0)
+    {
+      //lerp between positions
       for(int i = 0; i < n_zooms; i++)
       {
-        float s = Mathf.Lerp(zoom_cluster_zoom[i,zoom_cur],zoom_cluster_zoom[i,zoom_next],zoom_t);
+        float s = Mathf.Lerp(zoom_cluster_zoom_from[i],zoom_cluster_zoom_to[i],zoom_t);
         zoom_cluster[i].transform.localScale = new Vector3(s,s,s);
       }
+      blackhole.transform.position = Vector3.Lerp(blackhole_pos_from,blackhole_pos_to,zoom_t);
+      zoom_grid_resolution_cur         = Mathf.Lerp(zoom_grid_resolution_from,        zoom_grid_resolution_to,        zoom_t);
+      zoom_grid_display_resolution_cur = Mathf.Lerp(zoom_grid_display_resolution_from,zoom_grid_display_resolution_to,zoom_t);
 
+      //do special transforms
       if(zoom_cur == 0 && zoom_next >  0) ray_alpha =    zoom_t;
       if(zoom_cur >  0 && zoom_next == 0) ray_alpha = 1f-zoom_t;
 
-      zoom_grid_resolution_cur = Mathf.Lerp(zoom_grid_resolution[zoom_cur],zoom_grid_resolution[zoom_next],zoom_t);
-      zoom_grid_display_resolution_cur = Mathf.Lerp(zoom_grid_display_resolution[zoom_cur],zoom_grid_display_resolution[zoom_next],zoom_t);
-
-      camera_house.transform.position = Vector3.Lerp(old_cam_position, zoom_target + new Vector3(0,1,0), zoom_t);
+      camera_house.transform.position = Vector3.Lerp(player_position_from, player_position_to, zoom_t) + player_height;
 
       grid_alpha = ((zoom_t-0.5f)*2f);
-      grid_alpha = grid_alpha*grid_alpha*grid_alpha*grid_alpha;
-      grid_alpha *= grid_alpha;
+      grid_alpha = grid_alpha*grid_alpha*grid_alpha*grid_alpha*grid_alpha;
     }
     else
     {
+      //lerp between positions
       for(int i = 0; i < n_zooms; i++)
       {
-        float s = zoom_cluster_zoom[i,zoom_cur];
+        float s = zoom_cluster_zoom_to[i];
         zoom_cluster[i].transform.localScale = new Vector3(s,s,s);
       }
-      if(zoom_cur == 3)
-          blackhole.transform.position = plane.transform.position;
+      blackhole.transform.position = blackhole_pos_to;
+      zoom_grid_resolution_cur         = zoom_grid_resolution_to;
+      zoom_grid_display_resolution_cur = zoom_grid_display_resolution_to;
+
+      //do special transforms
+      if(zoom_cur == 0) ray_alpha = 0;
+      else              ray_alpha = 1;
+
+      camera_house.transform.position = player_position_to + player_height;
+
+      grid_alpha = 1;
     }
 
     camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
