@@ -5,7 +5,7 @@ using UnityEngine;
 public class GlobalScript : MonoBehaviour
 {
   Vector3 look_ahead;
-  Vector3 origin_pt;
+  Vector3 origin_to_pt;
   Vector3 origin_ray;
   Vector3 lazy_origin_ray;
   Vector2 lazy_origin_euler;
@@ -13,6 +13,7 @@ public class GlobalScript : MonoBehaviour
   Vector2 snapped_lazy_origin_euler;
   Vector2 lazy_origin_inflated_euler;
   Vector3 cast_vision;
+  Vector3 look_dir;
 
   int camera_position_id;
   int lazy_origin_ray_id;
@@ -99,7 +100,7 @@ public class GlobalScript : MonoBehaviour
     look_ahead  = new Vector3(0,0,1);
     player_height = new Vector3(0,1,0);
 
-    origin_pt = look_ahead;
+    origin_to_pt = look_ahead;
     origin_ray = look_ahead;
     lazy_origin_ray = look_ahead;
     lazy_origin_euler = new Vector2(0,0);
@@ -246,7 +247,7 @@ public class GlobalScript : MonoBehaviour
           starpos = new Vector3(Random.Range(-1f,1f),Random.Range(-1f,1f),Random.Range(-1f,1f));
           good_star = (starpos.sqrMagnitude < Random.Range(0f,1f));
         }
-        starpos = Vector3.Normalize(starpos);
+        starpos = starpos.normalized;
         float r = Random.Range(0f,1f);
         starpos *= Mathf.Lerp(1f,5f,r*r);
 
@@ -337,18 +338,13 @@ public class GlobalScript : MonoBehaviour
           break;
         case 1:
           ground.SetActive(false);
-          plane.transform.position = player_position_to + Vector3.Normalize(player_position_to)*(dome_s*2);
+          plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*2);
           break;
         case 2:
-          plane.transform.position = player_position_to + Vector3.Normalize(player_position_to)*(dome_s*2);
+          plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*2);
           break;
         case 3:
-          plane.transform.position = player_position_to + Vector3.Normalize(player_position_to)*(dome_s*5);
-          Debug.Log(lazy_origin_inflated_euler);
-          Debug.Log(goal_pitch);
-          Debug.Log(goal_yaw);
-          Debug.Log(Mathf.Abs(lazy_origin_inflated_euler.x-goal_pitch));
-          Debug.Log(Mathf.Abs(lazy_origin_inflated_euler.y+goal_yaw));
+          plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*5);
           if(
             Mathf.Abs(lazy_origin_inflated_euler.x-goal_pitch) < 0.5 &&
             Mathf.Abs(lazy_origin_inflated_euler.y+goal_yaw) < 0.5
@@ -420,24 +416,30 @@ public class GlobalScript : MonoBehaviour
 
     camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
 
-    cast_vision = camera.transform.position + (camera.transform.rotation * look_ahead * (dome_s+zoom_cur+1));
+    look_dir = camera.transform.rotation * look_ahead;
+    float dot    = Vector3.Dot(camera.transform.position.normalized,(camera.transform.rotation * look_ahead).normalized);
+    float yawdot = Vector2.Dot(new Vector2(look_dir.x,look_dir.z).normalized,new Vector2(camera.transform.position.x,camera.transform.position.z).normalized);
+    dot = Mathf.Min(dot,yawdot);
+    if(dot < -1f) dot = -1f;
+    if(dot >= 0) cast_vision = camera.transform.position + (look_dir * dome_s*5);
+    else         cast_vision = camera.transform.position + (look_dir * dome_s*5)*(1+dot);
     if(zoom_cur == 0 && zoom_t < 0.5)
     {
-      origin_pt = cast_vision;
-      origin_ray = Vector3.Normalize(origin_pt);
+      origin_to_pt = cast_vision;
+      origin_ray = origin_to_pt.normalized;
     }
     else
     {
-      Ray ray = new Ray(Vector3.zero, Vector3.Normalize(cast_vision));
+      Ray ray = new Ray(Vector3.zero, cast_vision.normalized);
       RaycastHit hit;
       if(plane_collider.Raycast(ray, out hit, 10000.0F))
       {
-        origin_pt = hit.point;
-        origin_ray = Vector3.Normalize(origin_pt);
+        origin_to_pt = hit.point;
+        origin_ray = origin_to_pt.normalized;
       }
     }
 
-    lazy_origin_ray = Vector3.Normalize(Vector3.Lerp(lazy_origin_ray, origin_ray, 0.05f));
+    lazy_origin_ray = Vector3.Lerp(lazy_origin_ray, origin_ray, 0.05f).normalized;
 
     Vector3 lazy_origin_ray_sqr = lazy_origin_ray;
     lazy_origin_ray_sqr.x *= lazy_origin_ray_sqr.x;
@@ -491,7 +493,7 @@ public class GlobalScript : MonoBehaviour
     primaryLabel.transform.position = lazy_gaze_position+new Vector3(0f,0.5f,0f);
     primaryLabel.transform.rotation =  Quaternion.Euler(-        lazy_origin_euler.x*Mathf.Rad2Deg,90f-        lazy_origin_euler.y*Mathf.Rad2Deg,0);
 
-    hudLabel.transform.position = cast_vision;
+    hudLabel.transform.position = camera.transform.position + (camera.transform.rotation * look_ahead * dome_s);
     hudLabel.transform.rotation = camera.transform.rotation;
     hudLabelText.text = string.Format("\n\n\n\n\n\nHud {0}° {1}°",goal_yaw,goal_pitch);
 
