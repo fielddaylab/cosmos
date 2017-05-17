@@ -136,9 +136,9 @@ public class GlobalScript : MonoBehaviour
     dome_project = new GameObject[n_projects];
     for(int i = 0; i < n_projects; i++)
     {
-      dome_project[i] = (GameObject)Instantiate(dome_project_prefab);
-      float m = 10;
-      dome_project[i].transform.localScale = new Vector3(dome_s*m*i,dome_s*m*i,dome_s*m*i);
+      //dome_project[i] = (GameObject)Instantiate(dome_project_prefab);
+      //float m = 10;
+      //dome_project[i].transform.localScale = new Vector3(dome_s*m*i,dome_s*m*i,dome_s*m*i);
     }
     plane_project = new GameObject[n_projects];
     for(int i = 0; i < n_projects; i++)
