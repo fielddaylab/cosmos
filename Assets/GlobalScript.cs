@@ -98,7 +98,7 @@ public class GlobalScript : MonoBehaviour
   void Start()
   {
     look_ahead  = new Vector3(0,0,1);
-    player_height = new Vector3(0,1,0);
+    player_height = new Vector3(0,1.5f,0);
 
     origin_to_pt = look_ahead;
     origin_ray = look_ahead;
@@ -277,7 +277,7 @@ public class GlobalScript : MonoBehaviour
     ray_alpha = 0f;
 
     goal_yaw = Random.Range(-180f,180f);
-    goal_pitch = Random.Range(10,70f);
+    goal_pitch = Random.Range(10,60f);
 
     plane_collider = plane.GetComponent<Collider>();
 
@@ -417,19 +417,20 @@ public class GlobalScript : MonoBehaviour
     camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
 
     look_dir = camera.transform.rotation * look_ahead;
-    float dot    = Vector3.Dot(camera.transform.position.normalized,(camera.transform.rotation * look_ahead).normalized);
-    float yawdot = Vector2.Dot(new Vector2(look_dir.x,look_dir.z).normalized,new Vector2(camera.transform.position.x,camera.transform.position.z).normalized);
-    dot = Mathf.Min(dot,yawdot);
-    if(dot < -1f) dot = -1f;
-    if(dot >= 0) cast_vision = camera.transform.position + (look_dir * dome_s*5);
-    else         cast_vision = camera.transform.position + (look_dir * dome_s*5)*(1+dot);
     if(zoom_cur == 0 && zoom_t < 0.5)
     {
-      origin_to_pt = cast_vision;
+      origin_to_pt = cast_vision = camera.transform.position + (look_dir * dome_s*5);;
       origin_ray = origin_to_pt.normalized;
     }
     else
     {
+      float dot    = Vector3.Dot(camera.transform.position.normalized,(camera.transform.rotation * look_ahead).normalized);
+      float yawdot = Vector2.Dot(new Vector2(look_dir.x,look_dir.z).normalized,new Vector2(camera.transform.position.x,camera.transform.position.z).normalized);
+      dot = Mathf.Min(dot,yawdot);
+      if(dot < -1f) dot = -1f;
+      if(dot >= 0) cast_vision = camera.transform.position + (look_dir * dome_s*5);
+      else         cast_vision = camera.transform.position + (look_dir * dome_s*5)*(1+dot);
+
       Ray ray = new Ray(Vector3.zero, cast_vision.normalized);
       RaycastHit hit;
       if(plane_collider.Raycast(ray, out hit, 10000.0F))
