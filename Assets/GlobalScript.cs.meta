@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 138633209d16c4ec5817bd2f71fc962b
-timeCreated: 1495044483
+timeCreated: 1495046601
 licenseType: Free
 MonoImporter:
   serializedVersion: 2
@@ -12,6 +12,10 @@ MonoImporter:
   - label_prefab: {fileID: 1568541558979782, guid: 9e81f05cdbdde46318e0465e2b63e83a,
       type: 2}
   - star_prefab: {fileID: 1806041150253560, guid: d9587705901164623b7c26eac536b326,
+      type: 2}
+  - dome_project_prefab: {fileID: 1739630503200716, guid: 0fd73c786aa9a470297932213471455f,
+      type: 2}
+  - plane_project_prefab: {fileID: 1831015634119700, guid: b9af6724c3c79446d8e5d6a8ec6d26af,
       type: 2}
   executionOrder: 0
   icon: {instanceID: 0}

@@ -16,6 +16,7 @@ public class GlobalScript : MonoBehaviour
   Vector3 look_dir;
 
   float dome_s = 5;
+  int n_projects = 5;
 
   int camera_position_id;
   int lazy_origin_ray_id;
@@ -31,6 +32,8 @@ public class GlobalScript : MonoBehaviour
   public Material ray_material;
   public GameObject label_prefab;
   public GameObject star_prefab;
+  public GameObject dome_project_prefab;
+  public GameObject plane_project_prefab;
 
   //objects
   GameObject[] zoom_cluster;
@@ -39,11 +42,12 @@ public class GlobalScript : MonoBehaviour
   new GameObject camera;
 
   GameObject dome;
-  GameObject dome_project;
   GameObject plane;
-  GameObject plane_project;
   GameObject ground;
   GameObject eyeray;
+
+  GameObject[] dome_project;
+  GameObject[] plane_project;
 
   GameObject blackhole;
   GameObject galaxy;
@@ -124,15 +128,23 @@ public class GlobalScript : MonoBehaviour
     camera_house  = GameObject.Find("CameraHouse");
     camera        = GameObject.Find("Main Camera");
     dome          = GameObject.Find("DomeGrid");
-    dome_project  = GameObject.Find("DomeProjectGrid");
     plane         = GameObject.Find("PlaneGrid");
-    plane_project = GameObject.Find("PlaneProjectGrid");
     ground = GameObject.Find("Ground");
     eyeray = GameObject.Find("Ray");
 
     dome.transform.localScale         = new Vector3(dome_s*2,dome_s*2,dome_s*2);
-    float m = 1;
-    dome_project.transform.localScale = new Vector3(dome_s*m,dome_s*m,dome_s*m);
+    dome_project = new GameObject[n_projects];
+    for(int i = 0; i < n_projects; i++)
+    {
+      dome_project[i] = (GameObject)Instantiate(dome_project_prefab);
+      float m = 10;
+      dome_project[i].transform.localScale = new Vector3(dome_s*m*i,dome_s*m*i,dome_s*m*i);
+    }
+    plane_project = new GameObject[n_projects];
+    for(int i = 0; i < n_projects; i++)
+    {
+      plane_project[i] = (GameObject)Instantiate(plane_project_prefab);
+    }
 
     blackhole   = GameObject.Find("BlackHole");
     galaxy      = GameObject.Find("Galaxy");
@@ -342,22 +354,26 @@ public class GlobalScript : MonoBehaviour
       {
         case 0:
           plane.transform.position = new Vector3(0f,-9999999,0f);
-          plane_project.transform.position = new Vector3(0f,-9999999,0f);
+          for(int i = 0; i < n_projects; i++)
+            plane_project[i].transform.position = new Vector3(0f,-9999999,0f);
           blackhole_position_from = blackhole.transform.position;
           blackhole_position_to   = blackhole_position_from*10f;
           break;
         case 1:
           ground.SetActive(false);
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*2);
-          plane_project.transform.position = player_position_to + player_position_to.normalized*(dome_s*10);
+          for(int i = 0; i < n_projects; i++)
+            plane_project[i].transform.position = player_position_to + player_position_to.normalized*(dome_s*10*i);
           break;
         case 2:
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*2);
-          plane_project.transform.position = player_position_to + player_position_to.normalized*(dome_s*2*10);
+          for(int i = 0; i < n_projects; i++)
+            plane_project[i].transform.position = player_position_to + player_position_to.normalized*(dome_s*2*10*i);
           break;
         case 3:
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*5);
-          plane_project.transform.position = player_position_to + player_position_to.normalized*(dome_s*5*10);
+          for(int i = 0; i < n_projects; i++)
+            plane_project[i].transform.position = player_position_to + player_position_to.normalized*(dome_s*5*10*i);
           if(
             Mathf.Abs(lazy_origin_inflated_euler.x-goal_pitch) < 0.5 &&
             Mathf.Abs(lazy_origin_inflated_euler.y+goal_yaw) < 0.5
@@ -369,7 +385,8 @@ public class GlobalScript : MonoBehaviour
           break;
       }
       plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
-      plane_project.transform.rotation = plane.transform.rotation;
+      for(int i = 0; i < n_projects; i++)
+        plane_project[i].transform.rotation = plane.transform.rotation;
     }
 
     if(zoom_t > 0)
