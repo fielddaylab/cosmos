@@ -15,6 +15,8 @@ public class GlobalScript : MonoBehaviour
   Vector3 cast_vision;
   Vector3 look_dir;
 
+  float dome_s = 5;
+
   int camera_position_id;
   int lazy_origin_ray_id;
   int snapped_lazy_origin_pitch_id;
@@ -25,6 +27,7 @@ public class GlobalScript : MonoBehaviour
 
   //unity-set
   public Material grid_material;
+  public Material project_grid_material;
   public Material ray_material;
   public GameObject label_prefab;
   public GameObject star_prefab;
@@ -36,7 +39,9 @@ public class GlobalScript : MonoBehaviour
   new GameObject camera;
 
   GameObject dome;
+  GameObject dome_project;
   GameObject plane;
+  GameObject plane_project;
   GameObject ground;
   GameObject eyeray;
 
@@ -116,12 +121,18 @@ public class GlobalScript : MonoBehaviour
     ray_alpha_id = Shader.PropertyToID("ray_alpha");
 
     //objects
-    camera_house = GameObject.Find("CameraHouse");
-    camera       = GameObject.Find("Main Camera");
-    dome   = GameObject.Find("DomeGrid");
-    plane  = GameObject.Find("PlaneGrid");
+    camera_house  = GameObject.Find("CameraHouse");
+    camera        = GameObject.Find("Main Camera");
+    dome          = GameObject.Find("DomeGrid");
+    dome_project  = GameObject.Find("DomeProjectGrid");
+    plane         = GameObject.Find("PlaneGrid");
+    plane_project = GameObject.Find("PlaneProjectGrid");
     ground = GameObject.Find("Ground");
     eyeray = GameObject.Find("Ray");
+
+    dome.transform.localScale         = new Vector3(dome_s*2,dome_s*2,dome_s*2);
+    float m = 1;
+    dome_project.transform.localScale = new Vector3(dome_s*m,dome_s*m,dome_s*m);
 
     blackhole   = GameObject.Find("BlackHole");
     galaxy      = GameObject.Find("Galaxy");
@@ -291,8 +302,6 @@ public class GlobalScript : MonoBehaviour
 
   void Update()
   {
-    float dome_s = 5;
-
     if(zoom_t == 0 && Input.GetMouseButtonDown(0))
     {
       zoom_t = 0.01f;
@@ -333,18 +342,22 @@ public class GlobalScript : MonoBehaviour
       {
         case 0:
           plane.transform.position = new Vector3(0f,-9999999,0f);
+          plane_project.transform.position = new Vector3(0f,-9999999,0f);
           blackhole_position_from = blackhole.transform.position;
           blackhole_position_to   = blackhole_position_from*10f;
           break;
         case 1:
           ground.SetActive(false);
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*2);
+          plane_project.transform.position = player_position_to + player_position_to.normalized*(dome_s*10);
           break;
         case 2:
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*2);
+          plane_project.transform.position = player_position_to + player_position_to.normalized*(dome_s*2*10);
           break;
         case 3:
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*5);
+          plane_project.transform.position = player_position_to + player_position_to.normalized*(dome_s*5*10);
           if(
             Mathf.Abs(lazy_origin_inflated_euler.x-goal_pitch) < 0.5 &&
             Mathf.Abs(lazy_origin_inflated_euler.y+goal_yaw) < 0.5
@@ -356,6 +369,7 @@ public class GlobalScript : MonoBehaviour
           break;
       }
       plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
+      plane_project.transform.rotation = plane.transform.rotation;
     }
 
     if(zoom_t > 0)
@@ -536,6 +550,13 @@ public class GlobalScript : MonoBehaviour
     grid_material.SetFloat(snapped_lazy_origin_yaw_id,snapped_lazy_origin_euler.y);
     grid_material.SetFloat(grid_resolution_id,zoom_grid_resolution_cur);
     grid_material.SetFloat(grid_alpha_id,grid_alpha);
+
+    project_grid_material.SetVector(camera_position_id,camera.transform.position);
+    project_grid_material.SetVector(lazy_origin_ray_id,lazy_origin_ray);
+    project_grid_material.SetFloat(snapped_lazy_origin_pitch_id,snapped_lazy_origin_euler.x);
+    project_grid_material.SetFloat(snapped_lazy_origin_yaw_id,snapped_lazy_origin_euler.y);
+    project_grid_material.SetFloat(grid_resolution_id,zoom_grid_resolution_cur);
+    project_grid_material.SetFloat(grid_alpha_id,grid_alpha);
 
     ray_material.SetVector(camera_position_id,camera.transform.position);
     ray_material.SetFloat(ray_alpha_id,ray_alpha);
