@@ -11,6 +11,7 @@ public class GlobalScript : MonoBehaviour
   Vector2 lazy_origin_euler;
   Vector3 snapped_lazy_origin_ray;
   Vector2 snapped_lazy_origin_euler;
+  Vector2 lazy_origin_inflated_euler;
   Vector3 cast_vision;
 
   int camera_position_id;
@@ -56,8 +57,8 @@ public class GlobalScript : MonoBehaviour
   Vector3 player_position_to;
   float[] zoom_cluster_zoom_from;
   float[] zoom_cluster_zoom_to;
-  Vector3 blackhole_pos_from;
-  Vector3 blackhole_pos_to;
+  Vector3 blackhole_position_from;
+  Vector3 blackhole_position_to;
   float zoom_grid_resolution_from;
   float zoom_grid_resolution_to;
   float zoom_grid_display_resolution_from;
@@ -86,10 +87,6 @@ public class GlobalScript : MonoBehaviour
   Collider plane_collider;
 
   //labels
-  GameObject pointLabel;
-  TextMesh pointLabelText;
-  GameObject snapPointLabel;
-  TextMesh snapPointLabelText;
   GameObject primaryLabel;
   TextMesh primaryLabelText;
   GameObject earthLabel;
@@ -221,8 +218,8 @@ public class GlobalScript : MonoBehaviour
     zoom_target_euler_inflation[2] = 5f;
     zoom_target_euler_inflation[3] = 15f;
 
-    blackhole_pos_from = new Vector3(99999,99999,9999);
-    blackhole_pos_to   = new Vector3(99999,99999,9999);
+    blackhole_position_from = new Vector3(99999,99999,9999);
+    blackhole_position_to   = new Vector3(99999,99999,9999);
 
     GameObject[] star_groups;
     GameObject star;
@@ -279,16 +276,10 @@ public class GlobalScript : MonoBehaviour
     ray_alpha = 0f;
 
     goal_yaw = Random.Range(-180f,180f);
-    goal_pitch = Random.Range(20,80f);
+    goal_pitch = Random.Range(10,70f);
 
     plane_collider = plane.GetComponent<Collider>();
 
-    pointLabel = (GameObject)Instantiate(label_prefab);
-    pointLabelText = pointLabel.GetComponent<TextMesh>();
-    pointLabelText.text = "x";
-    snapPointLabel = (GameObject)Instantiate(label_prefab);
-    snapPointLabelText = snapPointLabel.GetComponent<TextMesh>();
-    snapPointLabelText.text = "o";
     primaryLabel = (GameObject)Instantiate(label_prefab);
     primaryLabelText = primaryLabel.GetComponent<TextMesh>();
     earthLabel = (GameObject)Instantiate(label_prefab);
@@ -319,7 +310,7 @@ public class GlobalScript : MonoBehaviour
       else
       {
         zoom_target_euler[zoom_cur] = snapped_lazy_origin_euler;
-        player_position_to = Quaternion.Euler(-Mathf.Rad2Deg*zoom_target_euler[zoom_cur].x, -Mathf.Rad2Deg*zoom_target_euler[zoom_cur].y+90, 0) * look_ahead * Mathf.Pow(10,zoom_next);
+        player_position_to = Quaternion.Euler(-Mathf.Rad2Deg*zoom_target_euler[zoom_cur].x, -Mathf.Rad2Deg*zoom_target_euler[zoom_cur].y+90, 0) * look_ahead * Mathf.Pow(20,zoom_next);
 
         if(zoom_cur == 0) zoom_target_inflated_euler[zoom_cur] = zoom_target_euler[zoom_cur];
         else zoom_target_inflated_euler[zoom_cur] = zoom_target_inflated_euler[zoom_cur-1]+((zoom_target_euler[zoom_cur]-zoom_target_euler[zoom_cur-1])/zoom_target_euler_inflation[zoom_cur]);
@@ -341,20 +332,31 @@ public class GlobalScript : MonoBehaviour
       {
         case 0:
           plane.transform.position = new Vector3(0f,-9999999,0f);
-          blackhole_pos_from = blackhole.transform.position;
-          blackhole_pos_to   = blackhole_pos_from*10f;
+          blackhole_position_from = blackhole.transform.position;
+          blackhole_position_to   = blackhole_position_from*10f;
           break;
         case 1:
           ground.SetActive(false);
-          plane.transform.position = player_position_to + Vector3.Normalize(player_position_to)*(dome_s);
+          plane.transform.position = player_position_to + Vector3.Normalize(player_position_to)*(dome_s*2);
           break;
         case 2:
-          plane.transform.position = player_position_to + Vector3.Normalize(player_position_to)*(dome_s);
+          plane.transform.position = player_position_to + Vector3.Normalize(player_position_to)*(dome_s*2);
           break;
         case 3:
           plane.transform.position = player_position_to + Vector3.Normalize(player_position_to)*(dome_s*5);
-          blackhole_pos_to   = plane.transform.position;
-          blackhole_pos_from = blackhole_pos_to*10f;
+          Debug.Log(lazy_origin_inflated_euler);
+          Debug.Log(goal_pitch);
+          Debug.Log(goal_yaw);
+          Debug.Log(Mathf.Abs(lazy_origin_inflated_euler.x-goal_pitch));
+          Debug.Log(Mathf.Abs(lazy_origin_inflated_euler.y+goal_yaw));
+          if(
+            Mathf.Abs(lazy_origin_inflated_euler.x-goal_pitch) < 0.5 &&
+            Mathf.Abs(lazy_origin_inflated_euler.y+goal_yaw) < 0.5
+          )
+          {
+            blackhole_position_to   = plane.transform.position;
+            blackhole_position_from = blackhole_position_to*10f;
+          }
           break;
       }
       plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
@@ -381,7 +383,7 @@ public class GlobalScript : MonoBehaviour
         float s = Mathf.Lerp(zoom_cluster_zoom_from[i],zoom_cluster_zoom_to[i],zoom_t);
         zoom_cluster[i].transform.localScale = new Vector3(s,s,s);
       }
-      blackhole.transform.position = Vector3.Lerp(blackhole_pos_from,blackhole_pos_to,zoom_t);
+      blackhole.transform.position = Vector3.Lerp(blackhole_position_from,blackhole_position_to,zoom_t);
       zoom_grid_resolution_cur         = Mathf.Lerp(zoom_grid_resolution_from,        zoom_grid_resolution_to,        zoom_t);
       zoom_grid_display_resolution_cur = Mathf.Lerp(zoom_grid_display_resolution_from,zoom_grid_display_resolution_to,zoom_t);
 
@@ -403,7 +405,7 @@ public class GlobalScript : MonoBehaviour
         float s = zoom_cluster_zoom_to[i];
         zoom_cluster[i].transform.localScale = new Vector3(s,s,s);
       }
-      blackhole.transform.position = blackhole_pos_to;
+      blackhole.transform.position = blackhole_position_to;
       zoom_grid_resolution_cur         = zoom_grid_resolution_to;
       zoom_grid_display_resolution_cur = zoom_grid_display_resolution_to;
 
@@ -486,13 +488,8 @@ public class GlobalScript : MonoBehaviour
     eyeray.GetComponent<LineRenderer>().SetPosition(1,lazy_gaze_position);
     eyeray.GetComponent<LineRenderer>().SetPosition(2,lazy_gaze_position*100);
 
-        pointLabel.transform.position =         lazy_gaze_position;
-    snapPointLabel.transform.position = snapped_lazy_gaze_position;
-        pointLabel.transform.rotation = Quaternion.Euler(-        lazy_origin_euler.x*Mathf.Rad2Deg,90f-        lazy_origin_euler.y*Mathf.Rad2Deg,0);
-    snapPointLabel.transform.rotation = Quaternion.Euler(-snapped_lazy_origin_euler.x*Mathf.Rad2Deg,90f-snapped_lazy_origin_euler.y*Mathf.Rad2Deg,0);
-
-    primaryLabel.transform.position = pointLabel.transform.position+new Vector3(0f,0.5f,0f);
-    primaryLabel.transform.rotation = pointLabel.transform.rotation;
+    primaryLabel.transform.position = lazy_gaze_position+new Vector3(0f,0.5f,0f);
+    primaryLabel.transform.rotation =  Quaternion.Euler(-        lazy_origin_euler.x*Mathf.Rad2Deg,90f-        lazy_origin_euler.y*Mathf.Rad2Deg,0);
 
     hudLabel.transform.position = cast_vision;
     hudLabel.transform.rotation = camera.transform.rotation;
@@ -512,7 +509,7 @@ public class GlobalScript : MonoBehaviour
     else
       earthLabelText.text = "";
 
-    Vector2 lazy_origin_inflated_euler = lazy_origin_euler;
+    lazy_origin_inflated_euler = lazy_origin_euler;
     if(zoom_cur != 0) lazy_origin_inflated_euler = zoom_target_inflated_euler[zoom_cur-1]+((lazy_origin_euler-zoom_target_euler[zoom_cur-1])/zoom_target_euler_inflation[zoom_cur]);
     lazy_origin_inflated_euler *= Mathf.Rad2Deg;
 
