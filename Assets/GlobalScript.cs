@@ -192,21 +192,21 @@ public class GlobalScript : MonoBehaviour
     zoom_cluster_zoom_from[0] = zoom_cluster_zoom[0,0];
     zoom_cluster_zoom_to[0]   = zoom_cluster_zoom[0,0];
     // size of solar system while...
-    zoom_cluster_zoom[1,0] = 1000f;  //on earth
+    zoom_cluster_zoom[1,0] = 10000f;  //on earth
     zoom_cluster_zoom[1,1] = 1f;    //on solar system
     zoom_cluster_zoom[1,2] = 0.1f;  //on galaxy
     zoom_cluster_zoom[1,3] = 0.01f; //beyond
     zoom_cluster_zoom_from[1] = zoom_cluster_zoom[1,0];
     zoom_cluster_zoom_to[1]   = zoom_cluster_zoom[1,0];
     // size of galaxy while...
-    zoom_cluster_zoom[2,0] = 1000f; //on earth
+    zoom_cluster_zoom[2,0] = 100000f; //on earth
     zoom_cluster_zoom[2,1] = 100f; //on solar system
     zoom_cluster_zoom[2,2] = 10f; //on galaxy
     zoom_cluster_zoom[2,3] = 1f; //beyond
     zoom_cluster_zoom_from[2] = zoom_cluster_zoom[2,0];
     zoom_cluster_zoom_to[2]   = zoom_cluster_zoom[2,0];
     // size of beyond while...
-    zoom_cluster_zoom[3,0] = 10000f; //on earth
+    zoom_cluster_zoom[3,0] = 1000000f; //on earth
     zoom_cluster_zoom[3,1] = 1000f; //on solar system
     zoom_cluster_zoom[3,2] = 100f; //on galaxy
     zoom_cluster_zoom[3,3] = 1f; //beyond
