@@ -539,7 +539,7 @@ public class GlobalScript : MonoBehaviour
 
     hudLabel.transform.position = camera.transform.position + (camera.transform.rotation * look_ahead * dome_s);
     hudLabel.transform.rotation = camera.transform.rotation;
-    hudLabelText.text = string.Format("\n\n\n\n\n\nHud {0}° {1}°",goal_origin_euler.y*Mathf.Deg2Rad,goal_origin_euler.x*Mathf.Deg2Rad);
+    hudLabelText.text = string.Format("\n\n\n\n\n\nHud {0}° {1}°",goal_origin_euler.y*Mathf.Rad2Deg,goal_origin_euler.x*Mathf.Rad2Deg);
 
     if(zoom_cur != 0)
     {
@@ -557,10 +557,9 @@ public class GlobalScript : MonoBehaviour
 
     lazy_origin_inflated_euler = lazy_origin_euler;
     if(zoom_cur != 0) lazy_origin_inflated_euler = zoom_target_inflated_euler[zoom_cur-1]+((lazy_origin_euler-zoom_target_euler[zoom_cur-1])/zoom_target_euler_inflation[zoom_cur]);
-    lazy_origin_inflated_euler *= Mathf.Rad2Deg;
 
-    float lookx = lazy_origin_inflated_euler.x;
-    float looky = -lazy_origin_inflated_euler.y;
+    float lookx = lazy_origin_inflated_euler.x*Mathf.Rad2Deg;
+    float looky = -lazy_origin_inflated_euler.y*Mathf.Rad2Deg;
     float looky_min = Mathf.Floor(looky/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
     float looky_max = Mathf.Ceil(looky/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
     float lookx_min = Mathf.Floor(lookx/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
