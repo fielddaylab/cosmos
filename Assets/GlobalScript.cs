@@ -19,7 +19,7 @@ public class GlobalScript : MonoBehaviour
   Vector3 look_dir;
 
   float dome_s = 5;
-  int n_projects = 5;
+  int n_projects = 10;
 
   int camera_position_id;
   int lazy_origin_ray_id;
@@ -399,17 +399,17 @@ public class GlobalScript : MonoBehaviour
           ground.SetActive(false);
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*2);
           for(int i = 0; i < n_projects; i++)
-            plane_project[i].transform.position = player_position_to + player_position_to.normalized*(dome_s*10*i);
+            plane_project[i].transform.position = plane.transform.position + plane.transform.position.normalized*(dome_s*i)*(Mathf.Pow(i+1,2)/(Mathf.Pow(n_projects,2)));
           break;
         case 2:
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*2);
           for(int i = 0; i < n_projects; i++)
-            plane_project[i].transform.position = player_position_to + player_position_to.normalized*(dome_s*2*10*i);
+            plane_project[i].transform.position = plane.transform.position + plane.transform.position.normalized*(dome_s*i)*(Mathf.Pow(i+1,2)/(Mathf.Pow(n_projects,2)));
           break;
         case 3:
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*5);
           for(int i = 0; i < n_projects; i++)
-            plane_project[i].transform.position = player_position_to + player_position_to.normalized*(dome_s*5*10*i);
+            plane_project[i].transform.position = plane.transform.position + plane.transform.position.normalized*(dome_s*i)*(Mathf.Pow(i+1,2)/(Mathf.Pow(n_projects,2)));
           if(
             Mathf.Abs(lazy_origin_inflated_euler.x-goal_origin_euler.x) < 0.5 &&
             Mathf.Abs(lazy_origin_inflated_euler.y+goal_origin_euler.y) < 0.5
