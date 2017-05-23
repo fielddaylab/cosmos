@@ -22,6 +22,8 @@
         float3 lazy_origin_ray;
         float snapped_lazy_origin_pitch;
         float snapped_lazy_origin_yaw;
+        float snapped_goal_origin_pitch;
+        float snapped_goal_origin_yaw;
         float grid_resolution;
         float grid_alpha;
 
@@ -51,7 +53,8 @@
 
           fixed4 color = 0;
           float band = 0;
-          float shade = 1;
+          float lazy_shade = 1;
+          float goal_shade = 1;
           float x2;
           float y2;
           float z2;
@@ -98,8 +101,11 @@
           frag_origin_yaw_band = (frag_origin_yaw_band-frag_origin_yaw_display_threshhold)/(1-frag_origin_yaw_display_threshhold); //yaw is - below threshhold, 0 at threshhold, and 1 at 1
           frag_origin_yaw_band = max(0,frag_origin_yaw_band);
 
-          shade = abs(snapped_lazy_origin_yaw-frag_origin_yaw)+abs(snapped_lazy_origin_pitch-frag_origin_pitch);
-          shade = clamp(shade,0,1);
+          lazy_shade = abs(snapped_lazy_origin_yaw-frag_origin_yaw)+abs(snapped_lazy_origin_pitch-frag_origin_pitch);
+          lazy_shade = clamp(lazy_shade,0,1);
+
+          goal_shade = abs(snapped_goal_origin_yaw-frag_origin_yaw)+abs(snapped_goal_origin_pitch-frag_origin_pitch);
+          goal_shade = clamp(goal_shade,0,1);
 
           float from_min;
           float from_max;
@@ -119,10 +125,15 @@
           else if(grid_resolution > 0.45) v = 111; //0.5
           else v = 1000000;                        //0.5
 
-          shade = min(1,shade*v);
-          shade *= shade;
-          shade *= shade;
-          shade *= shade;
+          lazy_shade = min(1,lazy_shade*v);
+          lazy_shade *= lazy_shade;
+          lazy_shade *= lazy_shade;
+          lazy_shade *= lazy_shade;
+
+          goal_shade = min(1,goal_shade*v);
+          goal_shade *= goal_shade;
+          goal_shade *= goal_shade;
+          goal_shade *= goal_shade;
 
           frag_pt = normalize(frag_pt);
           x2 = frag_pt.x-lazy_origin_ray.x;
@@ -148,8 +159,7 @@
           else v = 50;                            //0.5
 
           band *= (window_r-frag_lazy_dist*v)/window_r;
-          color.rgba = float4(shade,1,1,band*grid_alpha);
-          //color.rgba = float4(shade,0,band,1);
+          color.rgba = float4(min(goal_shade,lazy_shade),1,1,band*grid_alpha);
 
           return color;
         }

@@ -4,13 +4,18 @@ using UnityEngine;
 
 public class GlobalScript : MonoBehaviour
 {
+  //vec2 euler = pitch,yaw
   Vector3 look_ahead;
-  Vector3 origin_to_pt;
+  Vector3 origin_to_cast_pt;
   Vector3 origin_ray;
   Vector3 lazy_origin_ray;
   Vector2 lazy_origin_euler;
   Vector3 snapped_lazy_origin_ray;
   Vector2 snapped_lazy_origin_euler;
+  Vector3 goal_origin_ray;
+  Vector2 goal_origin_euler;
+  Vector3 snapped_goal_origin_ray;
+  Vector2 snapped_goal_origin_euler;
   Vector2 lazy_origin_inflated_euler;
   Vector3 cast_vision;
   Vector3 look_dir;
@@ -22,6 +27,8 @@ public class GlobalScript : MonoBehaviour
   int lazy_origin_ray_id;
   int snapped_lazy_origin_pitch_id;
   int snapped_lazy_origin_yaw_id;
+  int snapped_goal_origin_pitch_id;
+  int snapped_goal_origin_yaw_id;
   int grid_resolution_id;
   int grid_alpha_id;
   int ray_alpha_id;
@@ -91,9 +98,6 @@ public class GlobalScript : MonoBehaviour
   float grid_alpha;
   float ray_alpha;
 
-  float goal_yaw;
-  float goal_pitch;
-
   Collider plane_collider;
 
   //labels
@@ -109,17 +113,23 @@ public class GlobalScript : MonoBehaviour
     look_ahead  = new Vector3(0,0,1);
     player_height = new Vector3(0,1.5f,0);
 
-    origin_to_pt = look_ahead;
+    origin_to_cast_pt = look_ahead;
     origin_ray = look_ahead;
     lazy_origin_ray = look_ahead;
     lazy_origin_euler = new Vector2(0,0);
     snapped_lazy_origin_ray = look_ahead;
     snapped_lazy_origin_euler = new Vector2(0,0);
+    goal_origin_euler = new Vector2(Random.Range(10,60f)*Mathf.Deg2Rad,Random.Range(-180f,180f)*Mathf.Deg2Rad);
+    goal_origin_ray = Quaternion.Euler(-Mathf.Rad2Deg*goal_origin_euler.x, -Mathf.Rad2Deg*goal_origin_euler.y+90, 0) * look_ahead;
+    snapped_goal_origin_ray = look_ahead; //gets computed based on zoom
+    snapped_goal_origin_euler = new Vector2(0,0); //gets computed based on zoom
 
     camera_position_id = Shader.PropertyToID("cam_position");
     lazy_origin_ray_id = Shader.PropertyToID("lazy_origin_ray");
     snapped_lazy_origin_pitch_id = Shader.PropertyToID("snapped_lazy_origin_pitch");
     snapped_lazy_origin_yaw_id = Shader.PropertyToID("snapped_lazy_origin_yaw");
+    snapped_goal_origin_pitch_id = Shader.PropertyToID("snapped_goal_origin_pitch");
+    snapped_goal_origin_yaw_id = Shader.PropertyToID("snapped_goal_origin_yaw");
     grid_resolution_id = Shader.PropertyToID("grid_resolution");
     grid_alpha_id = Shader.PropertyToID("grid_alpha");
     ray_alpha_id = Shader.PropertyToID("ray_alpha");
@@ -299,9 +309,6 @@ public class GlobalScript : MonoBehaviour
     grid_alpha = 1f;
     ray_alpha = 0f;
 
-    goal_yaw = Random.Range(-180f,180f);
-    goal_pitch = Random.Range(10,60f);
-
     plane_collider = plane.GetComponent<Collider>();
 
     primaryLabel = (GameObject)Instantiate(label_prefab);
@@ -375,8 +382,8 @@ public class GlobalScript : MonoBehaviour
           for(int i = 0; i < n_projects; i++)
             plane_project[i].transform.position = player_position_to + player_position_to.normalized*(dome_s*5*10*i);
           if(
-            Mathf.Abs(lazy_origin_inflated_euler.x-goal_pitch) < 0.5 &&
-            Mathf.Abs(lazy_origin_inflated_euler.y+goal_yaw) < 0.5
+            Mathf.Abs(lazy_origin_inflated_euler.x-goal_origin_euler.x) < 0.5 &&
+            Mathf.Abs(lazy_origin_inflated_euler.y+goal_origin_euler.y) < 0.5
           )
           {
             blackhole_position_to   = plane.transform.position;
@@ -450,8 +457,8 @@ public class GlobalScript : MonoBehaviour
     look_dir = camera.transform.rotation * look_ahead;
     if(zoom_cur == 0 && zoom_t < 0.5)
     {
-      origin_to_pt = cast_vision = camera.transform.position + (look_dir * dome_s*5);;
-      origin_ray = origin_to_pt.normalized;
+      origin_to_cast_pt = cast_vision = camera.transform.position + (look_dir * dome_s*5);;
+      origin_ray = origin_to_cast_pt.normalized;
     }
     else
     {
@@ -466,8 +473,8 @@ public class GlobalScript : MonoBehaviour
       RaycastHit hit;
       if(plane_collider.Raycast(ray, out hit, 10000.0F))
       {
-        origin_to_pt = hit.point;
-        origin_ray = origin_to_pt.normalized;
+        origin_to_cast_pt = hit.point;
+        origin_ray = origin_to_cast_pt.normalized;
       }
     }
 
@@ -485,6 +492,11 @@ public class GlobalScript : MonoBehaviour
     snapped_lazy_origin_euler.y = ((Mathf.Floor((lazy_origin_euler.y*Mathf.Rad2Deg)/zoom_grid_resolution_cur)*zoom_grid_resolution_cur)+zoom_grid_resolution_cur/2)*Mathf.Deg2Rad;
 
     snapped_lazy_origin_ray = Quaternion.Euler(-Mathf.Rad2Deg*snapped_lazy_origin_euler.x, -Mathf.Rad2Deg*snapped_lazy_origin_euler.y+90, 0) * look_ahead;
+
+    snapped_goal_origin_euler.x = ((Mathf.Floor((goal_origin_euler.x*Mathf.Rad2Deg)/zoom_grid_resolution_cur)*zoom_grid_resolution_cur)+zoom_grid_resolution_cur/2)*Mathf.Deg2Rad;
+    snapped_goal_origin_euler.y = ((Mathf.Floor((goal_origin_euler.y*Mathf.Rad2Deg)/zoom_grid_resolution_cur)*zoom_grid_resolution_cur)+zoom_grid_resolution_cur/2)*Mathf.Deg2Rad;
+
+    snapped_goal_origin_ray = Quaternion.Euler(-Mathf.Rad2Deg*snapped_goal_origin_euler.x, -Mathf.Rad2Deg*snapped_goal_origin_euler.y+90, 0) * look_ahead;
 
     //labels
     Vector3         lazy_gaze_position;
@@ -527,7 +539,7 @@ public class GlobalScript : MonoBehaviour
 
     hudLabel.transform.position = camera.transform.position + (camera.transform.rotation * look_ahead * dome_s);
     hudLabel.transform.rotation = camera.transform.rotation;
-    hudLabelText.text = string.Format("\n\n\n\n\n\nHud {0}° {1}°",goal_yaw,goal_pitch);
+    hudLabelText.text = string.Format("\n\n\n\n\n\nHud {0}° {1}°",goal_origin_euler.y*Mathf.Deg2Rad,goal_origin_euler.x*Mathf.Deg2Rad);
 
     if(zoom_cur != 0)
     {
@@ -565,6 +577,8 @@ public class GlobalScript : MonoBehaviour
     grid_material.SetVector(lazy_origin_ray_id,lazy_origin_ray);
     grid_material.SetFloat(snapped_lazy_origin_pitch_id,snapped_lazy_origin_euler.x);
     grid_material.SetFloat(snapped_lazy_origin_yaw_id,snapped_lazy_origin_euler.y);
+    grid_material.SetFloat(snapped_goal_origin_pitch_id,snapped_goal_origin_euler.x);
+    grid_material.SetFloat(snapped_goal_origin_yaw_id,snapped_goal_origin_euler.y);
     grid_material.SetFloat(grid_resolution_id,zoom_grid_resolution_cur);
     grid_material.SetFloat(grid_alpha_id,grid_alpha);
 
