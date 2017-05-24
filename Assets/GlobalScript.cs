@@ -452,7 +452,7 @@ public class GlobalScript : MonoBehaviour
       grid_alpha = 1;
     }
 
-    camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
+    //camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
 
     look_dir = camera.transform.rotation * look_ahead;
     if(zoom_cur == 0 && zoom_t < 0.5)
