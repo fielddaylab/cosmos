@@ -555,12 +555,10 @@ public class GlobalScript : MonoBehaviour
     primaryLabel.transform.position = lazy_gaze_position+new Vector3(0f,0.5f,0f);
     primaryLabel.transform.rotation =  labelInvRotationFromEuler(lazy_origin_euler);
 
-    Vector3 to_hud = (camera.transform.rotation * look_ahead);
-    Vector3 hud_left = Vector3.Cross(to_hud,new Vector3(0,-1,0));
-    Vector3 hud_down = Vector3.Cross(to_hud,hud_left);
-    Debug.Log(hud_left);
-    Debug.Log(hud_down);
-    hudLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*0.5f;
+    Vector3 to_hud = (camera.transform.rotation * look_ahead).normalized;
+    Vector3 hud_left = Vector3.Cross(new Vector3(0,-1,0),to_hud).normalized;
+    Vector3 hud_down = Vector3.Cross(to_hud,hud_left).normalized;
+    hudLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down;
     hudLabel.transform.rotation = camera.transform.rotation;
     hudLabelText.text = string.Format("Hud {0}° {1}°",Mathf.Rad2Deg*goal_origin_euler.y,Mathf.Rad2Deg*goal_origin_euler.x);
 
