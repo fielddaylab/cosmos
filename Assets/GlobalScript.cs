@@ -320,18 +320,25 @@ public class GlobalScript : MonoBehaviour
     earthLabelText = earthLabel.GetComponent<TextMesh>();
     hudLabel = (GameObject)Instantiate(label_prefab);
     hudLabelText = hudLabel.GetComponent<TextMesh>();
+    hudLabelText.alignment = TextAlignment.Left;
     hudGoalLabel = (GameObject)Instantiate(label_prefab);
     hudGoalLabelText = hudGoalLabel.GetComponent<TextMesh>();
+    hudGoalLabelText.alignment = TextAlignment.Left;
     hudGoalPitchLabel = (GameObject)Instantiate(label_prefab);
     hudGoalPitchLabelText = hudGoalPitchLabel.GetComponent<TextMesh>();
+    hudGoalPitchLabelText.alignment = TextAlignment.Left;
     hudGoalYawLabel = (GameObject)Instantiate(label_prefab);
     hudGoalYawLabelText = hudGoalYawLabel.GetComponent<TextMesh>();
+    hudGoalYawLabelText.alignment = TextAlignment.Left;
     hudCurLabel = (GameObject)Instantiate(label_prefab);
     hudCurLabelText = hudCurLabel.GetComponent<TextMesh>();
+    hudCurLabelText.alignment = TextAlignment.Left;
     hudCurPitchLabel = (GameObject)Instantiate(label_prefab);
     hudCurPitchLabelText = hudCurPitchLabel.GetComponent<TextMesh>();
+    hudCurPitchLabelText.alignment = TextAlignment.Left;
     hudCurYawLabel = (GameObject)Instantiate(label_prefab);
     hudCurYawLabelText = hudCurYawLabel.GetComponent<TextMesh>();
+    hudCurYawLabelText.alignment = TextAlignment.Left;
   }
 
   float snapRadToDegRange(float range, float val)
@@ -582,8 +589,8 @@ public class GlobalScript : MonoBehaviour
     float yaw_offx = 2.0f;
     float pitch_offx = 1.0f;
     Vector3 to_hud = (camera.transform.rotation * look_ahead).normalized;
-    Vector3 hud_left = Vector3.Cross(new Vector3(0,-1,0),to_hud).normalized;
-    Vector3 hud_down = Vector3.Cross(to_hud,hud_left).normalized;
+    Vector3 hud_down = (camera.transform.rotation * new Vector3(0,-1,0)).normalized;
+    Vector3 hud_left = (camera.transform.rotation * new Vector3(-1,0,0)).normalized;
     hudLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*label_offy + hud_left*label_offx;
     hudLabel.transform.rotation = camera.transform.rotation;
     switch(zoom_cur)
