@@ -320,25 +320,25 @@ public class GlobalScript : MonoBehaviour
     earthLabelText = earthLabel.GetComponent<TextMesh>();
     hudLabel = (GameObject)Instantiate(label_prefab);
     hudLabelText = hudLabel.GetComponent<TextMesh>();
-    hudLabelText.alignment = TextAlignment.Left;
+    hudLabelText.anchor = TextAnchor.MiddleLeft;
     hudGoalLabel = (GameObject)Instantiate(label_prefab);
     hudGoalLabelText = hudGoalLabel.GetComponent<TextMesh>();
-    hudGoalLabelText.alignment = TextAlignment.Left;
+    hudGoalLabelText.anchor = TextAnchor.MiddleLeft;
     hudGoalPitchLabel = (GameObject)Instantiate(label_prefab);
     hudGoalPitchLabelText = hudGoalPitchLabel.GetComponent<TextMesh>();
-    hudGoalPitchLabelText.alignment = TextAlignment.Left;
+    hudGoalPitchLabelText.anchor = TextAnchor.MiddleLeft;
     hudGoalYawLabel = (GameObject)Instantiate(label_prefab);
     hudGoalYawLabelText = hudGoalYawLabel.GetComponent<TextMesh>();
-    hudGoalYawLabelText.alignment = TextAlignment.Left;
+    hudGoalYawLabelText.anchor = TextAnchor.MiddleLeft;
     hudCurLabel = (GameObject)Instantiate(label_prefab);
     hudCurLabelText = hudCurLabel.GetComponent<TextMesh>();
-    hudCurLabelText.alignment = TextAlignment.Left;
+    hudCurLabelText.anchor = TextAnchor.MiddleLeft;
     hudCurPitchLabel = (GameObject)Instantiate(label_prefab);
     hudCurPitchLabelText = hudCurPitchLabel.GetComponent<TextMesh>();
-    hudCurPitchLabelText.alignment = TextAlignment.Left;
+    hudCurPitchLabelText.anchor = TextAnchor.MiddleLeft;
     hudCurYawLabel = (GameObject)Instantiate(label_prefab);
     hudCurYawLabelText = hudCurYawLabel.GetComponent<TextMesh>();
-    hudCurYawLabelText.alignment = TextAlignment.Left;
+    hudCurYawLabelText.anchor = TextAnchor.MiddleLeft;
   }
 
   float snapRadToDegRange(float range, float val)
@@ -583,11 +583,11 @@ public class GlobalScript : MonoBehaviour
     //primaryLabel.transform.rotation =  labelInvRotationFromEuler(lazy_origin_euler);
 
     float label_offy = 0.6f;
-    float goal_offy = 1.2f;
     float cur_offy = 0.8f;
+    float goal_offy = 1.0f;
     float label_offx = 3.0f;
-    float yaw_offx = 2.0f;
-    float pitch_offx = 1.0f;
+    float yaw_offx = 1.8f;
+    float pitch_offx = 0.6f;
     Vector3 to_hud = (camera.transform.rotation * look_ahead).normalized;
     Vector3 hud_down = (camera.transform.rotation * new Vector3(0,-1,0)).normalized;
     Vector3 hud_left = (camera.transform.rotation * new Vector3(-1,0,0)).normalized;
