@@ -12,16 +12,14 @@ public class GlobalScript : MonoBehaviour
   Vector2 lazy_origin_euler;
   Vector3 snapped_lazy_origin_ray;
   Vector2 snapped_lazy_origin_euler;
-  Vector3 goal_origin_ray;
   Vector2 goal_origin_euler;
-  Vector3 snapped_goal_origin_ray;
   Vector2 snapped_goal_origin_euler;
   Vector2 lazy_origin_inflated_euler;
   Vector3 cast_vision;
   Vector3 look_dir;
 
   float dome_s = 5;
-  int n_projects = 5;
+  int n_projects = 10;
 
   int camera_position_id;
   int lazy_origin_ray_id;
@@ -119,9 +117,7 @@ public class GlobalScript : MonoBehaviour
     lazy_origin_euler = new Vector2(0,0);
     snapped_lazy_origin_ray = look_ahead;
     snapped_lazy_origin_euler = new Vector2(0,0);
-    goal_origin_euler = new Vector2(Random.Range(10,60f)*Mathf.Deg2Rad,Random.Range(-180f,180f)*Mathf.Deg2Rad);
-    goal_origin_ray = Quaternion.Euler(-Mathf.Rad2Deg*goal_origin_euler.x, -Mathf.Rad2Deg*goal_origin_euler.y+90, 0) * look_ahead;
-    snapped_goal_origin_ray = look_ahead; //gets computed based on zoom
+    goal_origin_euler = new Vector2(Random.Range(10,55f)*Mathf.Deg2Rad,Random.Range(-180f,180f)*Mathf.Deg2Rad);
     snapped_goal_origin_euler = new Vector2(0,0); //gets computed based on zoom
 
     camera_position_id = Shader.PropertyToID("cam_position");
@@ -186,7 +182,6 @@ public class GlobalScript : MonoBehaviour
     zoom_cluster[2] = GameObject.Find("Zoom2Cluster");
     for(int i = 3; i < n_zooms; i++)
       zoom_cluster[i] = new GameObject();
-
 
     player_position_from = Vector3.zero;
     player_position_to   = Vector3.zero;
@@ -319,6 +314,40 @@ public class GlobalScript : MonoBehaviour
     hudLabelText = hudLabel.GetComponent<TextMesh>();
   }
 
+  float snapRadToDegRange(float range, float val)
+  {
+    return ((Mathf.Floor((Mathf.Rad2Deg*val)/range)*range)+range/2)*Mathf.Deg2Rad;
+  }
+  Vector2 snapEulerToDegRange(float range, Vector2 euler)
+  {
+    return new Vector2(
+      snapRadToDegRange(range,euler.x),
+      snapRadToDegRange(range,euler.y)
+    );
+  }
+  //0,0 centered on look_ahead (up is + pitch (x), right is + yaw (y))
+  Vector2 getEuler(Vector3 v)
+  {
+    float plane_dist = new Vector2(v.x,v.z).magnitude;
+    return new Vector2(Mathf.Atan2(v.y,plane_dist),-1*(Mathf.Atan2(v.z,v.x)-Mathf.PI/2));
+  }
+  Quaternion labelInvRotationFromEuler(Vector2 euler)
+  {
+    return Quaternion.Euler(-Mathf.Rad2Deg*euler.x, Mathf.Rad2Deg*euler.y, 0);
+  }
+  Quaternion planeInvRotationFromEuler(Vector2 euler)
+  {
+    return Quaternion.Euler(90-Mathf.Rad2Deg*euler.x, Mathf.Rad2Deg*euler.y, 0);
+  }
+  Quaternion rotationFromEuler(Vector2 euler)
+  {
+    return Quaternion.Euler(-Mathf.Rad2Deg*euler.x, Mathf.Rad2Deg*euler.y, 0);
+  }
+  Vector3 rotateLookAheadEuler(Vector2 euler)
+  {
+    return rotationFromEuler(euler) * look_ahead;
+  }
+
   void Update()
   {
     if(zoom_t == 0 && Input.GetMouseButtonDown(0))
@@ -339,7 +368,7 @@ public class GlobalScript : MonoBehaviour
       else
       {
         zoom_target_euler[zoom_cur] = snapped_lazy_origin_euler;
-        player_position_to = Quaternion.Euler(-Mathf.Rad2Deg*zoom_target_euler[zoom_cur].x, -Mathf.Rad2Deg*zoom_target_euler[zoom_cur].y+90, 0) * look_ahead * Mathf.Pow(20,zoom_next);
+        player_position_to = rotateLookAheadEuler(zoom_target_euler[zoom_cur])*Mathf.Pow(20,zoom_next);
 
         if(zoom_cur == 0) zoom_target_inflated_euler[zoom_cur] = zoom_target_euler[zoom_cur];
         else zoom_target_inflated_euler[zoom_cur] = zoom_target_inflated_euler[zoom_cur-1]+((zoom_target_euler[zoom_cur]-zoom_target_euler[zoom_cur-1])/zoom_target_euler_inflation[zoom_cur]);
@@ -370,17 +399,17 @@ public class GlobalScript : MonoBehaviour
           ground.SetActive(false);
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*2);
           for(int i = 0; i < n_projects; i++)
-            plane_project[i].transform.position = player_position_to + player_position_to.normalized*(dome_s*10*i);
+            plane_project[i].transform.position = plane.transform.position + plane.transform.position.normalized*(dome_s*i)*(Mathf.Pow(i+1,2)/(Mathf.Pow(n_projects,2)));
           break;
         case 2:
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*2);
           for(int i = 0; i < n_projects; i++)
-            plane_project[i].transform.position = player_position_to + player_position_to.normalized*(dome_s*2*10*i);
+            plane_project[i].transform.position = plane.transform.position + plane.transform.position.normalized*(dome_s*i)*(Mathf.Pow(i+1,2)/(Mathf.Pow(n_projects,2)));
           break;
         case 3:
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*5);
           for(int i = 0; i < n_projects; i++)
-            plane_project[i].transform.position = player_position_to + player_position_to.normalized*(dome_s*5*10*i);
+            plane_project[i].transform.position = plane.transform.position + plane.transform.position.normalized*(dome_s*i)*(Mathf.Pow(i+1,2)/(Mathf.Pow(n_projects,2)));
           if(
             Mathf.Abs(lazy_origin_inflated_euler.x-goal_origin_euler.x) < 0.5 &&
             Mathf.Abs(lazy_origin_inflated_euler.y+goal_origin_euler.y) < 0.5
@@ -391,7 +420,7 @@ public class GlobalScript : MonoBehaviour
           }
           break;
       }
-      plane.transform.rotation = Quaternion.Euler(-zoom_target_euler[zoom_cur].x*Mathf.Rad2Deg+90,-zoom_target_euler[zoom_cur].y*Mathf.Rad2Deg+90,0);//+90+180,0);
+      plane.transform.rotation = planeInvRotationFromEuler(zoom_target_euler[zoom_cur]);
       for(int i = 0; i < n_projects; i++)
         plane_project[i].transform.rotation = plane.transform.rotation;
     }
@@ -452,7 +481,7 @@ public class GlobalScript : MonoBehaviour
       grid_alpha = 1;
     }
 
-    //camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)/-2, (Input.mousePosition.x-Screen.width/2)/2, 0);
+    camera_house.transform.rotation = Quaternion.Euler((Input.mousePosition.y-Screen.height/2)*-2, (Input.mousePosition.x-Screen.width/2)*2, 0);
 
     look_dir = camera.transform.rotation * look_ahead;
     if(zoom_cur == 0 && zoom_t < 0.5)
@@ -480,23 +509,12 @@ public class GlobalScript : MonoBehaviour
 
     lazy_origin_ray = Vector3.Lerp(lazy_origin_ray, origin_ray, 0.05f).normalized;
 
-    Vector3 lazy_origin_ray_sqr = lazy_origin_ray;
-    lazy_origin_ray_sqr.x *= lazy_origin_ray_sqr.x;
-    lazy_origin_ray_sqr.y *= lazy_origin_ray_sqr.y;
-    lazy_origin_ray_sqr.z *= lazy_origin_ray_sqr.z;
-    float lazy_plane_origin_dist = Mathf.Sqrt(lazy_origin_ray_sqr.x+lazy_origin_ray_sqr.z);
+    lazy_origin_euler = getEuler(lazy_origin_ray);
+    snapped_lazy_origin_euler = snapEulerToDegRange(zoom_grid_resolution_cur,lazy_origin_euler);
 
-    lazy_origin_euler.x = Mathf.Atan2(lazy_origin_ray.y,lazy_plane_origin_dist);
-    lazy_origin_euler.y = Mathf.Atan2(lazy_origin_ray.z,lazy_origin_ray.x);
-    snapped_lazy_origin_euler.x = ((Mathf.Floor((lazy_origin_euler.x*Mathf.Rad2Deg)/zoom_grid_resolution_cur)*zoom_grid_resolution_cur)+zoom_grid_resolution_cur/2)*Mathf.Deg2Rad;
-    snapped_lazy_origin_euler.y = ((Mathf.Floor((lazy_origin_euler.y*Mathf.Rad2Deg)/zoom_grid_resolution_cur)*zoom_grid_resolution_cur)+zoom_grid_resolution_cur/2)*Mathf.Deg2Rad;
+    snapped_lazy_origin_ray = rotateLookAheadEuler(snapped_lazy_origin_euler);
 
-    snapped_lazy_origin_ray = Quaternion.Euler(-Mathf.Rad2Deg*snapped_lazy_origin_euler.x, -Mathf.Rad2Deg*snapped_lazy_origin_euler.y+90, 0) * look_ahead;
-
-    snapped_goal_origin_euler.x = ((Mathf.Floor((goal_origin_euler.x*Mathf.Rad2Deg)/zoom_grid_resolution_cur)*zoom_grid_resolution_cur)+zoom_grid_resolution_cur/2)*Mathf.Deg2Rad;
-    snapped_goal_origin_euler.y = ((Mathf.Floor((goal_origin_euler.y*Mathf.Rad2Deg)/zoom_grid_resolution_cur)*zoom_grid_resolution_cur)+zoom_grid_resolution_cur/2)*Mathf.Deg2Rad;
-
-    snapped_goal_origin_ray = Quaternion.Euler(-Mathf.Rad2Deg*snapped_goal_origin_euler.x, -Mathf.Rad2Deg*snapped_goal_origin_euler.y+90, 0) * look_ahead;
+    snapped_goal_origin_euler = snapEulerToDegRange(zoom_grid_resolution_cur,goal_origin_euler);
 
     //labels
     Vector3         lazy_gaze_position;
@@ -535,16 +553,19 @@ public class GlobalScript : MonoBehaviour
     eyeray.GetComponent<LineRenderer>().SetPosition(2,lazy_gaze_position*100);
 
     primaryLabel.transform.position = lazy_gaze_position+new Vector3(0f,0.5f,0f);
-    primaryLabel.transform.rotation =  Quaternion.Euler(-        lazy_origin_euler.x*Mathf.Rad2Deg,90f-        lazy_origin_euler.y*Mathf.Rad2Deg,0);
+    primaryLabel.transform.rotation =  labelInvRotationFromEuler(lazy_origin_euler);
 
-    hudLabel.transform.position = camera.transform.position + (camera.transform.rotation * look_ahead * dome_s);
+    Vector3 to_hud = (camera.transform.rotation * look_ahead).normalized;
+    Vector3 hud_left = Vector3.Cross(new Vector3(0,-1,0),to_hud).normalized;
+    Vector3 hud_down = Vector3.Cross(to_hud,hud_left).normalized;
+    hudLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down;
     hudLabel.transform.rotation = camera.transform.rotation;
-    hudLabelText.text = string.Format("\n\n\n\n\n\nHud {0}° {1}°",goal_origin_euler.y*Mathf.Rad2Deg,goal_origin_euler.x*Mathf.Rad2Deg);
+    hudLabelText.text = string.Format("Hud {0}° {1}°",Mathf.Rad2Deg*goal_origin_euler.y,Mathf.Rad2Deg*goal_origin_euler.x);
 
     if(zoom_cur != 0)
     {
       earthLabel.transform.position = camera_house.transform.position.normalized * (camera_house.transform.position.magnitude-dome_s);
-      earthLabel.transform.rotation = Quaternion.Euler(lazy_origin_euler.x*Mathf.Rad2Deg,270f-lazy_origin_euler.y*Mathf.Rad2Deg,0);
+      earthLabel.transform.rotation = labelInvRotationFromEuler(lazy_origin_euler);
       if(zoom_cur == 1)
         earthLabelText.text = string.Format("Solar System\n{0} mi",camera_house.transform.position.magnitude*camera_house.transform.position.magnitude);
       else if(zoom_cur == 2)
@@ -558,8 +579,8 @@ public class GlobalScript : MonoBehaviour
     lazy_origin_inflated_euler = lazy_origin_euler;
     if(zoom_cur != 0) lazy_origin_inflated_euler = zoom_target_inflated_euler[zoom_cur-1]+((lazy_origin_euler-zoom_target_euler[zoom_cur-1])/zoom_target_euler_inflation[zoom_cur]);
 
-    float lookx = lazy_origin_inflated_euler.x*Mathf.Rad2Deg;
-    float looky = -lazy_origin_inflated_euler.y*Mathf.Rad2Deg;
+    float lookx = Mathf.Rad2Deg*lazy_origin_inflated_euler.x;
+    float looky = Mathf.Rad2Deg*lazy_origin_inflated_euler.y;
     float looky_min = Mathf.Floor(looky/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
     float looky_max = Mathf.Ceil(looky/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
     float lookx_min = Mathf.Floor(lookx/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
@@ -575,16 +596,16 @@ public class GlobalScript : MonoBehaviour
     grid_material.SetVector(camera_position_id,camera.transform.position);
     grid_material.SetVector(lazy_origin_ray_id,lazy_origin_ray);
     grid_material.SetFloat(snapped_lazy_origin_pitch_id,snapped_lazy_origin_euler.x);
-    grid_material.SetFloat(snapped_lazy_origin_yaw_id,snapped_lazy_origin_euler.y);
+    grid_material.SetFloat(snapped_lazy_origin_yaw_id,-1*snapped_lazy_origin_euler.y+(Mathf.PI/2));
     grid_material.SetFloat(snapped_goal_origin_pitch_id,snapped_goal_origin_euler.x);
-    grid_material.SetFloat(snapped_goal_origin_yaw_id,snapped_goal_origin_euler.y);
+    grid_material.SetFloat(snapped_goal_origin_yaw_id,-1*snapped_goal_origin_euler.y+(Mathf.PI/2));
     grid_material.SetFloat(grid_resolution_id,zoom_grid_resolution_cur);
     grid_material.SetFloat(grid_alpha_id,grid_alpha);
 
     project_grid_material.SetVector(camera_position_id,camera.transform.position);
     project_grid_material.SetVector(lazy_origin_ray_id,lazy_origin_ray);
     project_grid_material.SetFloat(snapped_lazy_origin_pitch_id,snapped_lazy_origin_euler.x);
-    project_grid_material.SetFloat(snapped_lazy_origin_yaw_id,snapped_lazy_origin_euler.y);
+    project_grid_material.SetFloat(snapped_lazy_origin_yaw_id,-1*snapped_lazy_origin_euler.y+(Mathf.PI/2));
     project_grid_material.SetFloat(grid_resolution_id,zoom_grid_resolution_cur);
     project_grid_material.SetFloat(grid_alpha_id,grid_alpha);
 

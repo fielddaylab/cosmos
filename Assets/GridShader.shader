@@ -159,7 +159,7 @@
           else v = 50;                            //0.5
 
           band *= (window_r-frag_lazy_dist*v)/window_r;
-          color.rgba = float4(min(goal_shade,lazy_shade),1,1,band*grid_alpha);
+          color.rgba = float4(goal_shade,lazy_shade,1,band*grid_alpha);
 
           return color;
         }

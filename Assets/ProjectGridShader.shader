@@ -135,8 +135,7 @@
 
           band = clamp(frag_origin_pitch_band+frag_origin_yaw_band,0,1);
 
-          color.rgba = float4(shade,1,1,(1-shade)*band*grid_alpha);
-          //color.rgba = float4(shade,0,band,1);
+          color.rgba = float4(1,shade,1,(1-shade)*band*grid_alpha);
 
           return color;
         }
