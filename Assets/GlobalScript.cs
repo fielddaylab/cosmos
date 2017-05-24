@@ -101,6 +101,8 @@ public class GlobalScript : MonoBehaviour
   //labels
   GameObject earthLabel;
   TextMesh earthLabelText;
+  GameObject hudLabel;
+  TextMesh hudLabelText;
   GameObject hudGoalLabel;
   TextMesh hudGoalLabelText;
   GameObject hudGoalPitchLabel;
@@ -316,6 +318,8 @@ public class GlobalScript : MonoBehaviour
 
     earthLabel = (GameObject)Instantiate(label_prefab);
     earthLabelText = earthLabel.GetComponent<TextMesh>();
+    hudLabel = (GameObject)Instantiate(label_prefab);
+    hudLabelText = hudLabel.GetComponent<TextMesh>();
     hudGoalLabel = (GameObject)Instantiate(label_prefab);
     hudGoalLabelText = hudGoalLabel.GetComponent<TextMesh>();
     hudGoalPitchLabel = (GameObject)Instantiate(label_prefab);
@@ -571,6 +575,7 @@ public class GlobalScript : MonoBehaviour
     //primaryLabel.transform.position = lazy_gaze_position+new Vector3(0f,0.5f,0f);
     //primaryLabel.transform.rotation =  labelInvRotationFromEuler(lazy_origin_euler);
 
+    float label_offy = 0.6f;
     float goal_offy = 1.2f;
     float cur_offy = 0.8f;
     float label_offx = 3.0f;
@@ -579,6 +584,15 @@ public class GlobalScript : MonoBehaviour
     Vector3 to_hud = (camera.transform.rotation * look_ahead).normalized;
     Vector3 hud_left = Vector3.Cross(new Vector3(0,-1,0),to_hud).normalized;
     Vector3 hud_down = Vector3.Cross(to_hud,hud_left).normalized;
+    hudLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*label_offy + hud_left*label_offx;
+    hudLabel.transform.rotation = camera.transform.rotation;
+    switch(zoom_cur)
+    {
+      case 0: hudLabelText.text = "Current Location: ICE CUBE Lab, South Pole, Earth"; break;
+      case 1: hudLabelText.text = "Current Location: Milky Way"; break;
+      case 2: hudLabelText.text = "Current Location: Local Group"; break;
+      case 3: hudLabelText.text = "Current Location: Very, very far away"; break;
+    }
     hudGoalLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*goal_offy + hud_left*label_offx;
     hudGoalLabel.transform.rotation = camera.transform.rotation;
     hudGoalLabelText.text = "Goal:";
