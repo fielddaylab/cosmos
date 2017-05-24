@@ -421,7 +421,7 @@ public class GlobalScript : MonoBehaviour
           for(int i = 0; i < n_projects; i++)
             plane_project[i].transform.position = new Vector3(0f,-9999999,0f);
           blackhole_position_from = blackhole.transform.position;
-          blackhole_position_to   = blackhole_position_from*10f;
+          blackhole_position_to   = blackhole_position_from*100000f;
           break;
         case 1:
           ground.SetActive(false);
@@ -444,7 +444,7 @@ public class GlobalScript : MonoBehaviour
           //)
           {
             blackhole_position_to   = plane.transform.position*2f;
-            blackhole_position_from = blackhole_position_to*10f;
+            blackhole_position_from = blackhole_position_to*100f;
           }
           break;
       }
