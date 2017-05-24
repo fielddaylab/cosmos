@@ -99,12 +99,20 @@ public class GlobalScript : MonoBehaviour
   Collider plane_collider;
 
   //labels
-  GameObject primaryLabel;
-  TextMesh primaryLabelText;
   GameObject earthLabel;
   TextMesh earthLabelText;
-  GameObject hudLabel;
-  TextMesh hudLabelText;
+  GameObject hudGoalLabel;
+  TextMesh hudGoalLabelText;
+  GameObject hudGoalPitchLabel;
+  TextMesh hudGoalPitchLabelText;
+  GameObject hudGoalYawLabel;
+  TextMesh hudGoalYawLabelText;
+  GameObject hudCurLabel;
+  TextMesh hudCurLabelText;
+  GameObject hudCurPitchLabel;
+  TextMesh hudCurPitchLabelText;
+  GameObject hudCurYawLabel;
+  TextMesh hudCurYawLabelText;
 
   void Start()
   {
@@ -157,15 +165,15 @@ public class GlobalScript : MonoBehaviour
     solarsystem = GameObject.Find("SolarSystem");
     earth       = GameObject.Find("Earth");
 
-    blackhole.GetComponent<Renderer>().material.SetColor(  "_Color",Color.blue);
+    //blackhole.GetComponent<Renderer>().material.SetColor(  "_Color",Color.blue);
     galaxy.GetComponent<Renderer>().material.SetColor(     "_Color",Color.red);
     solarsystem.GetComponent<Renderer>().material.SetColor("_Color",Color.yellow);
     earth.GetComponent<Renderer>().material.SetColor(      "_Color",Color.green);
-    blackhole.GetComponent<Renderer>().material.SetColor(  "_Albedo",Color.blue);
+    //blackhole.GetComponent<Renderer>().material.SetColor(  "_Albedo",Color.blue);
     galaxy.GetComponent<Renderer>().material.SetColor(     "_Albedo",Color.red);
     solarsystem.GetComponent<Renderer>().material.SetColor("_Albedo",Color.yellow);
     earth.GetComponent<Renderer>().material.SetColor(      "_Albedo",Color.green);
-    blackhole.GetComponent<Renderer>().material.SetColor(  "_EmissionColor",Color.blue);
+    //blackhole.GetComponent<Renderer>().material.SetColor(  "_EmissionColor",Color.blue);
     galaxy.GetComponent<Renderer>().material.SetColor(     "_EmissionColor",Color.red);
     solarsystem.GetComponent<Renderer>().material.SetColor("_EmissionColor",Color.yellow);
     earth.GetComponent<Renderer>().material.SetColor(      "_EmissionColor",Color.green);
@@ -306,12 +314,20 @@ public class GlobalScript : MonoBehaviour
 
     plane_collider = plane.GetComponent<Collider>();
 
-    primaryLabel = (GameObject)Instantiate(label_prefab);
-    primaryLabelText = primaryLabel.GetComponent<TextMesh>();
     earthLabel = (GameObject)Instantiate(label_prefab);
     earthLabelText = earthLabel.GetComponent<TextMesh>();
-    hudLabel = (GameObject)Instantiate(label_prefab);
-    hudLabelText = hudLabel.GetComponent<TextMesh>();
+    hudGoalLabel = (GameObject)Instantiate(label_prefab);
+    hudGoalLabelText = hudGoalLabel.GetComponent<TextMesh>();
+    hudGoalPitchLabel = (GameObject)Instantiate(label_prefab);
+    hudGoalPitchLabelText = hudGoalPitchLabel.GetComponent<TextMesh>();
+    hudGoalYawLabel = (GameObject)Instantiate(label_prefab);
+    hudGoalYawLabelText = hudGoalYawLabel.GetComponent<TextMesh>();
+    hudCurLabel = (GameObject)Instantiate(label_prefab);
+    hudCurLabelText = hudCurLabel.GetComponent<TextMesh>();
+    hudCurPitchLabel = (GameObject)Instantiate(label_prefab);
+    hudCurPitchLabelText = hudCurPitchLabel.GetComponent<TextMesh>();
+    hudCurYawLabel = (GameObject)Instantiate(label_prefab);
+    hudCurYawLabelText = hudCurYawLabel.GetComponent<TextMesh>();
   }
 
   float snapRadToDegRange(float range, float val)
@@ -552,15 +568,26 @@ public class GlobalScript : MonoBehaviour
     eyeray.GetComponent<LineRenderer>().SetPosition(1,lazy_gaze_position);
     eyeray.GetComponent<LineRenderer>().SetPosition(2,lazy_gaze_position*100);
 
-    primaryLabel.transform.position = lazy_gaze_position+new Vector3(0f,0.5f,0f);
-    primaryLabel.transform.rotation =  labelInvRotationFromEuler(lazy_origin_euler);
+    //primaryLabel.transform.position = lazy_gaze_position+new Vector3(0f,0.5f,0f);
+    //primaryLabel.transform.rotation =  labelInvRotationFromEuler(lazy_origin_euler);
 
+    float goal_offy = 1.2f;
+    float cur_offy = 0.8f;
+    float label_offx = 3.0f;
+    float yaw_offx = 2.0f;
+    float pitch_offx = 1.0f;
     Vector3 to_hud = (camera.transform.rotation * look_ahead).normalized;
     Vector3 hud_left = Vector3.Cross(new Vector3(0,-1,0),to_hud).normalized;
     Vector3 hud_down = Vector3.Cross(to_hud,hud_left).normalized;
-    hudLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down;
-    hudLabel.transform.rotation = camera.transform.rotation;
-    hudLabelText.text = string.Format("Hud {0}° {1}°",Mathf.Rad2Deg*goal_origin_euler.y,Mathf.Rad2Deg*goal_origin_euler.x);
+    hudGoalLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*goal_offy + hud_left*label_offx;
+    hudGoalLabel.transform.rotation = camera.transform.rotation;
+    hudGoalLabelText.text = "Goal:";
+    hudGoalYawLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*goal_offy + hud_left*yaw_offx;
+    hudGoalYawLabel.transform.rotation = camera.transform.rotation;
+    hudGoalYawLabelText.text = string.Format("{0}°",Mathf.Rad2Deg*goal_origin_euler.y);
+    hudGoalPitchLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*goal_offy + hud_left*pitch_offx;
+    hudGoalPitchLabel.transform.rotation = camera.transform.rotation;
+    hudGoalPitchLabelText.text = string.Format("{0}°",Mathf.Rad2Deg*goal_origin_euler.x);
 
     if(zoom_cur != 0)
     {
@@ -586,11 +613,41 @@ public class GlobalScript : MonoBehaviour
     float lookx_min = Mathf.Floor(lookx/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
     float lookx_max = Mathf.Ceil(lookx/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
     if(zoom_cur < 2)
-      primaryLabelText.text = string.Format("{0}° - {1}°,\n{2}° - {3}°", looky_min.ToString("F0"), looky_max.ToString("F0"), lookx_min.ToString("F0"), lookx_max.ToString("F0"));
+    {
+      hudCurLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*cur_offy + hud_left*label_offx;
+      hudCurLabel.transform.rotation = camera.transform.rotation;
+      hudCurLabelText.text = "Current:";
+      hudCurYawLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*cur_offy + hud_left*yaw_offx;
+      hudCurYawLabel.transform.rotation = camera.transform.rotation;
+      hudCurYawLabelText.text = string.Format("{0}° - {1}°", looky_min.ToString("F0"), looky_max.ToString("F0"));
+      hudCurPitchLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*cur_offy + hud_left*pitch_offx;
+      hudCurPitchLabel.transform.rotation = camera.transform.rotation;
+      hudCurPitchLabelText.text = string.Format("{0}° - {1}°", lookx_min.ToString("F0"), lookx_max.ToString("F0"));
+    }
     else if(zoom_cur < 3)
-      primaryLabelText.text = string.Format("{0}°°,\n{1}°", looky.ToString("F2"), lookx.ToString("F2"));
+    {
+      hudCurLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*cur_offy + hud_left*label_offx;
+      hudCurLabel.transform.rotation = camera.transform.rotation;
+      hudCurLabelText.text = "Current:";
+      hudCurYawLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*cur_offy + hud_left*yaw_offx;
+      hudCurYawLabel.transform.rotation = camera.transform.rotation;
+      hudCurYawLabelText.text = string.Format("{0}°", looky.ToString("F2"));
+      hudCurPitchLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*cur_offy + hud_left*pitch_offx;
+      hudCurPitchLabel.transform.rotation = camera.transform.rotation;
+      hudCurPitchLabelText.text = string.Format("{0}°", lookx.ToString("F2"));
+    }
     else
-      primaryLabelText.text = "";
+    {
+      hudCurLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*cur_offy + hud_left*label_offx;
+      hudCurLabel.transform.rotation = camera.transform.rotation;
+      hudCurLabelText.text = "";
+      hudCurYawLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*cur_offy + hud_left*yaw_offx;
+      hudCurYawLabel.transform.rotation = camera.transform.rotation;
+      hudCurYawLabelText.text = "";
+      hudCurPitchLabel.transform.position = camera.transform.position + (to_hud*dome_s) + hud_down*cur_offy + hud_left*pitch_offx;
+      hudCurPitchLabel.transform.rotation = camera.transform.rotation;
+      hudCurPitchLabelText.text = "";
+    }
 
     //shader inputs
     grid_material.SetVector(camera_position_id,camera.transform.position);
