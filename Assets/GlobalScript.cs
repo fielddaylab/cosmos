@@ -127,7 +127,8 @@ public class GlobalScript : MonoBehaviour
     lazy_origin_euler = new Vector2(0,0);
     snapped_lazy_origin_ray = look_ahead;
     snapped_lazy_origin_euler = new Vector2(0,0);
-    goal_origin_euler = new Vector2(Random.Range(10,55f)*Mathf.Deg2Rad,Random.Range(-180f,180f)*Mathf.Deg2Rad);
+    //goal_origin_euler = new Vector2(Random.Range(10,55f)*Mathf.Deg2Rad,Random.Range(-180f,180f)*Mathf.Deg2Rad);
+    goal_origin_euler = new Vector2(33.73419f*Mathf.Deg2Rad,165.4768f*Mathf.Deg2Rad);
     snapped_goal_origin_euler = new Vector2(0,0); //gets computed based on zoom
 
     camera_position_id = Shader.PropertyToID("cam_position");
@@ -437,12 +438,12 @@ public class GlobalScript : MonoBehaviour
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*5);
           for(int i = 0; i < n_projects; i++)
             plane_project[i].transform.position = plane.transform.position + plane.transform.position.normalized*(dome_s*i)*(Mathf.Pow(i+1,2)/(Mathf.Pow(n_projects,2)));
-          if(
-            Mathf.Abs(lazy_origin_inflated_euler.x-goal_origin_euler.x) < 0.5 &&
-            Mathf.Abs(lazy_origin_inflated_euler.y+goal_origin_euler.y) < 0.5
-          )
+          //if(
+            //Mathf.Abs(lazy_origin_inflated_euler.x-goal_origin_euler.x) < 0.5 &&
+            //Mathf.Abs(lazy_origin_inflated_euler.y+goal_origin_euler.y) < 0.5
+          //)
           {
-            blackhole_position_to   = plane.transform.position;
+            blackhole_position_to   = plane.transform.position*2f;
             blackhole_position_from = blackhole_position_to*10f;
           }
           break;
@@ -474,6 +475,7 @@ public class GlobalScript : MonoBehaviour
         zoom_cluster[i].transform.localScale = new Vector3(s,s,s);
       }
       blackhole.transform.position = Vector3.Lerp(blackhole_position_from,blackhole_position_to,zoom_t);
+      blackhole.transform.rotation = camera.transform.rotation;
       zoom_grid_resolution_cur         = Mathf.Lerp(zoom_grid_resolution_from,        zoom_grid_resolution_to,        zoom_t);
       zoom_grid_display_resolution_cur = Mathf.Lerp(zoom_grid_display_resolution_from,zoom_grid_display_resolution_to,zoom_t);
 
