@@ -99,8 +99,8 @@ public class GlobalScript : MonoBehaviour
   Collider plane_collider;
 
   //labels
-  GameObject earthLabel;
-  TextMesh earthLabelText;
+  GameObject homeLabel;
+  TextMesh homeLabelText;
   GameObject hudLabel;
   TextMesh hudLabelText;
   GameObject hudGoalLabel;
@@ -317,8 +317,8 @@ public class GlobalScript : MonoBehaviour
 
     plane_collider = plane.GetComponent<Collider>();
 
-    earthLabel = (GameObject)Instantiate(label_prefab);
-    earthLabelText = earthLabel.GetComponent<TextMesh>();
+    homeLabel = (GameObject)Instantiate(label_prefab);
+    homeLabelText = homeLabel.GetComponent<TextMesh>();
     hudLabel = (GameObject)Instantiate(label_prefab);
     hudLabelText = hudLabel.GetComponent<TextMesh>();
     hudLabelText.anchor = TextAnchor.MiddleLeft;
@@ -361,7 +361,7 @@ public class GlobalScript : MonoBehaviour
   }
   Quaternion labelInvRotationFromEuler(Vector2 euler)
   {
-    return Quaternion.Euler(-Mathf.Rad2Deg*euler.x, Mathf.Rad2Deg*euler.y, 0);
+    return Quaternion.Euler(Mathf.Rad2Deg*(euler.x), Mathf.Rad2Deg*(euler.y+Mathf.PI), 0);
   }
   Quaternion planeInvRotationFromEuler(Vector2 euler)
   {
@@ -614,17 +614,17 @@ public class GlobalScript : MonoBehaviour
 
     if(zoom_cur != 0)
     {
-      earthLabel.transform.position = camera_house.transform.position.normalized * (camera_house.transform.position.magnitude-dome_s);
-      earthLabel.transform.rotation = labelInvRotationFromEuler(lazy_origin_euler);
+      homeLabel.transform.position = camera_house.transform.position.normalized * (camera_house.transform.position.magnitude-dome_s);
+      homeLabel.transform.rotation = labelInvRotationFromEuler(lazy_origin_euler);
       if(zoom_cur == 1)
-        earthLabelText.text = string.Format("Solar System\n{0} mi",camera_house.transform.position.magnitude*camera_house.transform.position.magnitude);
+        homeLabelText.text = string.Format("Solar System\n{0} mi",camera_house.transform.position.magnitude*camera_house.transform.position.magnitude);
       else if(zoom_cur == 2)
-        earthLabelText.text = string.Format("Milky Way\n{0} mi",camera_house.transform.position.magnitude*camera_house.transform.position.magnitude);
+        homeLabelText.text = string.Format("Milky Way\n{0} mi",camera_house.transform.position.magnitude*camera_house.transform.position.magnitude);
       else if(zoom_cur == 3)
-        earthLabelText.text = string.Format("Home\n{0} mi",camera_house.transform.position.magnitude*camera_house.transform.position.magnitude);
+        homeLabelText.text = string.Format("Home\n{0} mi",camera_house.transform.position.magnitude*camera_house.transform.position.magnitude);
     }
     else
-      earthLabelText.text = "";
+      homeLabelText.text = "";
 
     lazy_origin_inflated_euler = lazy_origin_euler;
     if(zoom_cur != 0) lazy_origin_inflated_euler = zoom_target_inflated_euler[zoom_cur-1]+((lazy_origin_euler-zoom_target_euler[zoom_cur-1])/zoom_target_euler_inflation[zoom_cur]);
