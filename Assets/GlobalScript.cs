@@ -441,10 +441,10 @@ public class GlobalScript : MonoBehaviour
           plane.transform.position = player_position_to + player_position_to.normalized*(dome_s*5);
           for(int i = 0; i < n_projects; i++)
             plane_project[i].transform.position = plane.transform.position + plane.transform.position.normalized*(dome_s*i)*(Mathf.Pow(i+1,2)/(Mathf.Pow(n_projects,2)));
-          //if(
-            //Mathf.Abs(lazy_origin_inflated_euler.x-goal_origin_euler.x) < 0.5 &&
-            //Mathf.Abs(lazy_origin_inflated_euler.y+goal_origin_euler.y) < 0.5
-          //)
+          if(
+            Mathf.Abs(lazy_origin_euler.x-snapped_goal_origin_euler.x) < 0.5 &&
+            Mathf.Abs(lazy_origin_euler.y-snapped_goal_origin_euler.y) < 0.5
+          )
           {
             blackhole_position_to   = plane.transform.position*2f;
             blackhole_position_from = blackhole_position_to*100f;
