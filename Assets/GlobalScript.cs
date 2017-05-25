@@ -635,8 +635,6 @@ public class GlobalScript : MonoBehaviour
 
     float lookx = Mathf.Rad2Deg*lazy_origin_inflated_euler.x;
     float looky = Mathf.Rad2Deg*lazy_origin_inflated_euler.y;
-    Debug.Log(lookx);
-    Debug.Log(looky);
     float looky_min = Mathf.Floor(looky/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
     float looky_max = Mathf.Ceil(looky/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
     float lookx_min = Mathf.Floor(lookx/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
