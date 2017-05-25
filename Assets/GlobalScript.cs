@@ -12,9 +12,10 @@ public class GlobalScript : MonoBehaviour
   Vector2 lazy_origin_euler;
   Vector3 snapped_lazy_origin_ray;
   Vector2 snapped_lazy_origin_euler;
+  Vector2 lazy_origin_inflated_euler;
   Vector2 goal_origin_euler;
   Vector2 snapped_goal_origin_euler;
-  Vector2 lazy_origin_inflated_euler;
+  Vector2 goal_origin_deflated_euler;
   Vector3 cast_vision;
   Vector3 look_dir;
 
@@ -229,6 +230,7 @@ public class GlobalScript : MonoBehaviour
     zoom_cluster_zoom_from[3] = zoom_cluster_zoom[3,0];
     zoom_cluster_zoom_to[3]   = zoom_cluster_zoom[3,0];
 
+    //doesn't inflate at all
     zoom_grid_resolution = new float[n_zooms];
     zoom_grid_resolution[0] = 10f;
     zoom_grid_resolution[1] = 5f;
@@ -239,7 +241,7 @@ public class GlobalScript : MonoBehaviour
 
     zoom_grid_display_resolution = new float[n_zooms];
     zoom_grid_display_resolution[0] = 10f;
-    zoom_grid_display_resolution[1] = 1f;
+    zoom_grid_display_resolution[1] = 5f;
     zoom_grid_display_resolution[2] = 1f;
     zoom_grid_display_resolution[3] = 0.2f;
     zoom_grid_display_resolution_from = zoom_grid_display_resolution[0];
@@ -341,6 +343,7 @@ public class GlobalScript : MonoBehaviour
     hudCurYawLabelText = hudCurYawLabel.GetComponent<TextMesh>();
     hudCurYawLabelText.anchor = TextAnchor.MiddleLeft;
   }
+
 
   float snapRadToDegRange(float range, float val)
   {
@@ -540,10 +543,11 @@ public class GlobalScript : MonoBehaviour
 
     lazy_origin_euler = getEuler(lazy_origin_ray);
     snapped_lazy_origin_euler = snapEulerToDegRange(zoom_grid_resolution_cur,lazy_origin_euler);
-
     snapped_lazy_origin_ray = rotateLookAheadEuler(snapped_lazy_origin_euler);
-
-    snapped_goal_origin_euler = snapEulerToDegRange(zoom_grid_resolution_cur,goal_origin_euler);
+    //inverse of inflate
+    goal_origin_deflated_euler = goal_origin_euler;
+    if(zoom_cur != 0) goal_origin_deflated_euler = ((goal_origin_deflated_euler-zoom_target_inflated_euler[zoom_cur-1])*zoom_target_euler_inflation[zoom_cur])+zoom_target_euler[zoom_cur-1];
+    snapped_goal_origin_euler = snapEulerToDegRange(zoom_grid_resolution_cur,goal_origin_deflated_euler);
 
     //labels
     Vector3         lazy_gaze_position;
@@ -631,6 +635,8 @@ public class GlobalScript : MonoBehaviour
 
     float lookx = Mathf.Rad2Deg*lazy_origin_inflated_euler.x;
     float looky = Mathf.Rad2Deg*lazy_origin_inflated_euler.y;
+    Debug.Log(lookx);
+    Debug.Log(looky);
     float looky_min = Mathf.Floor(looky/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
     float looky_max = Mathf.Ceil(looky/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
     float lookx_min = Mathf.Floor(lookx/zoom_grid_display_resolution_cur)*zoom_grid_display_resolution_cur;
