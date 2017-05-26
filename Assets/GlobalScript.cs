@@ -100,6 +100,8 @@ public class GlobalScript : MonoBehaviour
   Collider plane_collider;
 
   //labels
+  GameObject directionLabel;
+  TextMesh directionLabelText;
   GameObject homeLabel;
   TextMesh homeLabelText;
   GameObject hudLabel;
@@ -319,6 +321,8 @@ public class GlobalScript : MonoBehaviour
 
     plane_collider = plane.GetComponent<Collider>();
 
+    directionLabel = (GameObject)Instantiate(label_prefab);
+    directionLabelText = directionLabel.GetComponent<TextMesh>();
     homeLabel = (GameObject)Instantiate(label_prefab);
     homeLabelText = homeLabel.GetComponent<TextMesh>();
     hudLabel = (GameObject)Instantiate(label_prefab);
@@ -585,8 +589,8 @@ public class GlobalScript : MonoBehaviour
     eyeray.GetComponent<LineRenderer>().SetPosition(1,lazy_gaze_position);
     eyeray.GetComponent<LineRenderer>().SetPosition(2,lazy_gaze_position*100);
 
-    //primaryLabel.transform.position = lazy_gaze_position+new Vector3(0f,0.5f,0f);
-    //primaryLabel.transform.rotation =  labelInvRotationFromEuler(lazy_origin_euler);
+    directionLabel.transform.position = lazy_gaze_position;
+    directionLabel.transform.rotation =  labelInvRotationFromEuler(lazy_origin_euler);
 
     float label_offy = 0.6f;
     float cur_offy = 0.8f;
@@ -632,6 +636,23 @@ public class GlobalScript : MonoBehaviour
 
     lazy_origin_inflated_euler = lazy_origin_euler;
     if(zoom_cur != 0) lazy_origin_inflated_euler = zoom_target_inflated_euler[zoom_cur-1]+((lazy_origin_euler-zoom_target_euler[zoom_cur-1])/zoom_target_euler_inflation[zoom_cur]);
+
+    var xdelt = snapped_goal_origin_euler.x - lazy_origin_euler.x;
+    var ydelt = snapped_goal_origin_euler.y - lazy_origin_euler.y;
+    if(Mathf.Abs(xdelt) > Mathf.Abs(ydelt))
+    {
+      if(xdelt < 0)
+        directionLabelText.text = "\\/";
+      else if(xdelt > 0)
+        directionLabelText.text = "/\\";
+    }
+    else
+    {
+      if(ydelt < 0)
+        directionLabelText.text = ">";
+      else if(ydelt > 0)
+        directionLabelText.text = "<";
+    }
 
     float lookx = Mathf.Rad2Deg*lazy_origin_inflated_euler.x;
     float looky = Mathf.Rad2Deg*lazy_origin_inflated_euler.y;
